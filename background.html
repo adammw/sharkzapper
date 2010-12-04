@@ -61,7 +61,7 @@
 					console.log('Got popup init, re-checking tabs');
 					//get_gs_tab(function(sendResponse) { return function(){ console.log('Sending popup init response'); } }(sendResponse));
 					get_gs_tab(function(){
-						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true});
+						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0]});
 						chrome.tabs.sendRequest(gsTabs[0], {"command":"updateStatus"});
 					},respond_callback({"command":"popupUpdate","enabled":false}));
 					break;

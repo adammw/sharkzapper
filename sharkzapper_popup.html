@@ -61,6 +61,7 @@
 	<script type="text/javascript">
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var songId = null;
+	var tabId = null;
 
 	String.prototype.pad = function(l, s){
     return (l -= this.length) > 0 
@@ -107,6 +108,7 @@
 		function(request, sender, sendResponse) {
 			console.log(request);
 			if (!request.command) return;
+			if (tabId && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {
 				case 'popupUpdate':
 					if (request.enabled) {
@@ -118,6 +120,7 @@
 						$('body').addClass('notPlaying');
 						$('button').attr('disabled','disabled');
 					}
+					if (request.tabId) tabId = request.tabId;
 					break;
 				case 'statusUpdate':
 					console.log('statusUpdate!');

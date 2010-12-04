@@ -60,6 +60,7 @@
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
 	<script type="text/javascript">
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
+	var songId = null;
 
 	String.prototype.pad = function(l, s){
     return (l -= this.length) > 0 
@@ -70,9 +71,31 @@
 	$(document).ready(function(){
 		$('#player_previous').click(function(){chrome.extension.sendRequest({"command": "prevSong"});});
 		$('#player_next').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
-		$('#player_play_pause').click(function(){if($('#player_play_pause').hasClass('pause')) {chrome.extension.sendRequest({"command": "pauseSong"});} else {chrome.extension.sendRequest({"command": "resumeSong"});}});
+		$('#player_play_pause').click(function(){
+			if($('#player_play_pause').hasClass('pause')) {
+				chrome.extension.sendRequest({"command": "pauseSong"});
+			} else {
+				chrome.extension.sendRequest({"command": "resumeSong"});
+			}
+		});
 		$('#grooveshark').click(function(){chrome.extension.sendRequest({"command":"openGSTab"});});
 		$('#player_volume').click(function(){chrome.extension.sendRequest({"command": "toggleMute"});});
+		$('#addToLibraryBtn').click(function(){
+			if ($('#addToLibraryBtn').hasClass('selected')) {
+				chrome.extension.sendRequest({"command": "removeFromLibrary", "songId": songId});
+			} else {
+				chrome.extension.sendRequest({"command": "addToLibrary", "songId": songId});
+			}
+			//$('#addToLibraryBtn').toggleClass('selected');
+		});
+		$('#addToFavoritesBtn').click(function(){
+			if ($('#addToFavoritesBtn').hasClass('selected')) {
+				chrome.extension.sendRequest({"command": "removeFromSongFavorites", "songId": songId});
+			} else {
+				chrome.extension.sendRequest({"command": "addToSongFavorites", "songId": songId});
+			}
+			//$('#addToFavoritesBtn').toggleClass('selected');
+		});
 		$('#search_form').submit(function(){ 
 			chrome.extension.sendRequest({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
 			chrome.extension.sendRequest({"command":"performSearch", "query": $('#searchBox').val()});
@@ -99,6 +122,7 @@
 				case 'statusUpdate':
 					console.log('statusUpdate!');
 					if (request.currentSong) {
+						songId = request.currentSong.SongID;
 						$('#songName').text(request.currentSong.SongName);
 						$('#albumName').text(request.currentSong.AlbumName);
 						$('#artistName').text(request.currentSong.ArtistName);
@@ -110,6 +134,16 @@
 						} else {
 							$('#albumart').attr('src', defaultAlbumArtUrl);
 						}
+						if (request.currentSong.fromLibrary) {
+							$('#addToLibraryBtn').addClass('selected');
+						} else {
+							$('#addToLibraryBtn').removeClass('selected');
+						}
+						if (request.currentSong.isFavorite) {
+							$('#addToFavoritesBtn').addClass('selected');
+						} else {
+							$('#addToFavoritesBtn').removeClass('selected');
+						}
 						$('#player_play_pause').removeAttr('disabled');
 						$('#player_play_pause').removeClass('disabled');
 						$('#albumart').removeClass('hidden');
@@ -117,6 +151,7 @@
 						$('#player_volume').removeClass('hidden');
 						$('body').removeClass('notPlaying');
 					} else { 
+						songId = null;
 						$('#songName').text('');
 						$('#albumName').text('');
 						$('#artistName').text('');
@@ -182,6 +217,10 @@
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
 	</div>
 	<div id="lowerControls">
+		<div id="playerDetails_nowPlaying">
+			<a class="btn btn_style1 icon add" style="border-radius: 2px;"  title="Add to My Music" id="addToLibraryBtn"></a>
+			<a class="btn btn_style1 icon favorite" style="border-radius: 2px;" title="Add to Favorites" id="addToFavoritesBtn"></a>
+		</div>
 		<div class="fltrht"><button id="player_volume" class="player_control hidden" title="Volume Mute"></button></div>
 		<div id="search">
 			<form id="search_form">

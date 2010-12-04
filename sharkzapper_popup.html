@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+<head>
+	<title>SharkZapper</title>
+	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		$('#prevSongBtn').click(function(){chrome.extension.sendRequest({"command": "prevSong"});});
+		$('#nextSongBtn').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
+		$('#pauseSongBtn').click(function(){chrome.extension.sendRequest({"command": "pauseSong"});});
+	});
+	
+	chrome.extension.onRequest.addListener(
+		function(request, sender, sendResponse) {
+			console.log(request);
+			if (!request.command) return;
+			switch (request.command) {
+				case 'popupUpdate':
+					if (request.enabled) {
+						$('button').removeAttr('disabled');
+					} else {
+						$('button').attr('disabled','disabled');
+					}
+			}		
+		}
+	);	
+
+	chrome.extension.sendRequest({"command": "popupInit"});
+	</script>
+</head>
+<body>
+	<button id="prevSongBtn" disabled="disabled">prev</button>
+	<button id="pauseSongBtn" disabled="disabled">pause</button>
+	<button id="nextSongBtn" disabled="disabled">next</button>
+</body>
+</html>

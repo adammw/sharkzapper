@@ -1,0 +1,27 @@
+{
+	"name": "sharkzapper",
+	"version": "1.0.0",
+
+	"description": "Control Grooveshark HTML5 Player and see what's playing",
+	"icons": {
+		"16": "icon_16.png",
+		"22": "icon_22.png",
+		"128": "icon_128.png"
+	},
+
+	"browser_action": {
+		"default_icon": "icon_22.png",
+		"default_popup": "sharkzapper_popup.html"
+	},
+	"permissions": [
+		"tabs",
+		"http://*.grooveshark.com/"
+	],
+	"background_page": "background.html",
+	"content_scripts": [
+		{
+			"matches": ["*://listen.grooveshark.com/*"],
+			"js": ["jquery-1.4.4.min.js", "sharkzapper.js"]
+		}
+	]
+}

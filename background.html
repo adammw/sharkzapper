@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+<head>
+	<title>SharkZapper Background Page</title>
+	<!--<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>-->
+	<script type="text/javascript">	
+	var gsTabs = [];
+	
+	// Get open Grooveshark tabs
+	function get_gs_tab(success_callback, fail_callback, arg) {
+		chrome.windows.getAll({'populate':true}, function(win) {
+			gsTabs = [];
+			for (wi in win) {
+				for (ti in win[wi].tabs) {
+	 				if(win[wi].tabs[ti].url.indexOf('http://listen.grooveshark.com/')==0) {
+						gsTabs.push(win[wi].tabs[ti].id);
+	 				}
+	 			}
+	 		}
+			if(gsTabs.length > 0 && typeof success_callback == "function") {
+				success_callback(arg);
+			} else if(typeof fail_callback == "function") {
+				fail_callback(arg);
+			} 
+	 	});
+	}
+
+	// Inject our content scripts into the first grooveshark tab (should not be required after plugin is loaded due to manifest)
+	function inject_scripts() {
+		if (gsTabs.length > 0) {
+			chrome.tabs.executeScript(gsTabs[0], {'file':'jquery-1.4.4.min.js'});		
+			chrome.tabs.executeScript(gsTabs[0], {'file':'sharkzapper.js'});
+			console.log('Injected scripts into existing tab #' + gsTabs[0]);
+		}
+	}
+
+	// Open a new grooveshark tab or show the currently open one
+	function open_gs_tab() {
+		if (gsTabs.length == 0) {
+			chrome.tabs.create({url:'http://listen.grooveshark.com/'});
+		} else {
+			chrome.tabs.update(gsTabs[0], {'selected':true});
+		}
+	}
+
+	// Respond to requests
+	chrome.extension.onRequest.addListener(
+		function(request, sender, sendResponse) {
+			console.log(request);
+			if (!request.command) return;
+			// Pass through cross events
+			if (sender.tab) { chrome.extension.sendRequest(request); }
+			else if (gsTabs.length > 0) { chrome.tabs.sendRequest(gsTabs[0], request); }
+			// Handle commands
+			switch (request.command) {
+				case 'popupInit':
+					console.log('Got popup init, re-checking tabs');
+					//get_gs_tab(function(sendResponse) { return function(){ console.log('Sending popup init response'); } }(sendResponse));
+					get_gs_tab(respond_callback({"command":"popupUpdate","enabled":true}),respond_callback({"command":"popupUpdate","enabled":false}));
+			}
+		}
+	);
+	
+	function respond_callback(response) {
+		return function(){chrome.extension.sendRequest(response)};
+	}
+	
+	// Inject all currently open tabs with our content script
+	get_gs_tab(inject_scripts); 
+	</script>
+</head>
+<body>
+	
+</body>
+</html>

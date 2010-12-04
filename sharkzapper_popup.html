@@ -8,7 +8,12 @@
 		min-width: 300px;
 		min-height: 160px;
 	}
+	body.notPlaying {
+		min-height: 60px;
+	}
 	.hidden { display: none; }
+	.fltlft { float: left; }
+	.fltrht { float: right; }
 	#player_controls_playback { float: none; }
 	#thumbnail {
 		position: absolute;
@@ -24,10 +29,21 @@
 		padding: 8px;
 		margin-right: 120px;
 	}
+	#lowerControls {
+		margin-right: 120px;
+	}
 	#songName {
 		font-weight: bold;
 	}
-	
+	#player_volume {
+		background: url(volume_icon.png) no-repeat;
+		margin: 0px;
+		padding: 0px;
+		width: 20px;
+	}
+	#player_volume.mute {
+		background: url(mute_icon.png) no-repeat;
+	}
 	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
 	<script type="text/javascript">
@@ -44,6 +60,7 @@
 		$('#player_next').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
 		$('#player_play_pause').click(function(){if($('#player_play_pause').hasClass('pause')) {chrome.extension.sendRequest({"command": "pauseSong"});} else {chrome.extension.sendRequest({"command": "resumeSong"});}});
 		$('#grooveshark').click(function(){chrome.extension.sendRequest({"command":"openGSTab"});});
+		$('#player_volume').click(function(){chrome.extension.sendRequest({"command": "toggleMute"});});
 	});
 	
 	chrome.extension.onRequest.addListener(
@@ -57,6 +74,7 @@
 					} else {
 						$('button').attr('disabled','disabled');
 					}
+					break;
 				case 'statusUpdate':
 					console.log('statusUpdate!');
 					if (request.currentSong) {
@@ -71,22 +89,50 @@
 						} else {
 							$('#albumart').attr('src', defaultAlbumArtUrl);
 						}
+						$('#player_play_pause').removeAttr('disabled');
+						$('#player_play_pause').removeClass('disabled');
 						$('#albumart').removeClass('hidden');
 						$('#songDetails').removeClass('hidden');
+						$('#lowerControls').removeClass('hidden');
+						$('body').removeClass('notPlaying');
 					} else { 
 						$('#songName').text('');
 						$('#albumName').text('');
 						$('#artistName').text('');
 						$('#player_elapsed').text('');
 						$('#player_duration').text('');
+						$('#player_play_pause').attr('disabled','disabled');
+						$('#player_play_pause').addClass('disabled');
 						$('#albumart').addClass('hidden');
 						$('#songDetails').addClass('hidden');
-					 }
-					if (request.isPaused) {
+						$('#lowerControls').addClass('hidden');
+						$('body').addClass('notPlaying');
+					}
+					if (request.prevSong) {
+						$('#player_previous').removeClass('disabled');						
+						$('#player_previous').removeAttr('disabled');
+					} else {
+						$('#player_previous').addClass('disabled');	
+						$('#player_previous').attr('disabled','disabled');
+					}
+					if (request.nextSong) {
+						$('#player_next').removeClass('disabled');						
+						$('#player_next').removeAttr('disabled');
+					} else {
+						$('#player_next').addClass('disabled');
+						$('#player_next').attr('disabled','disabled');
+					}
+					if (request.isPaused || !request.isPlaying) {
 						$('#player_play_pause').removeClass('pause');
 					} else {
 						$('#player_play_pause').addClass('pause');
 					}
+					if (request.isMuted) {
+						$('#player_volume').addClass('mute');
+					} else {
+						$('#player_volume').removeClass('mute');
+					}
+					break;
 			}		
 		}
 	);	
@@ -101,18 +147,21 @@
 		</a>
 	</div>
 	<div id="thumbnail">
-		<img id="albumart" alt="Album Art" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
+		<img id="albumart" alt="Album Art" class="hidden" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
 		<div id="player_controls_playback">
 			<button id="player_previous" disabled="disabled" class="player_control" title="Previous"></button>
 			<button id="player_play_pause" disabled="disabled" class="player_control" title="Play/Pause"></button>
 			<button id="player_next" disabled="disabled" class="player_control" title="Next"></button>
 		</div>
 	</div>
-	<div id="songDetails">
+	<div id="songDetails" class="hidden">
 		<div><span id="songName"></span></div>
 		<div><span id="albumName"></span></div>
 		<div><span id="artistName"></span></div>
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
+	</div>
+	<div id="lowerControls" class="hidden">
+		<div class="fltrht"><button id="player_volume" class="player_control" title="Volume Mute"></button></div>
 	</div>
 </body>
 </html>

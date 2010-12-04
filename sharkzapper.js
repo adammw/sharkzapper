@@ -18,6 +18,7 @@ if (!document.getElementById('sharkzapperInject')) {
 				case 'resumeSong':
 				case 'nextSong':
 				case 'updateStatus':
+				case 'toggleMute':
 					window.postMessage(JSON.stringify(request), "http://listen.grooveshark.com");
 			}
 		}
@@ -30,10 +31,11 @@ if (!document.getElementById('sharkzapperInject')) {
 								"command": "statusUpdate",						\
 								"playbackStatus": GS.player.getPlaybackStatus(),\
 								"currentSong": GS.player.currentSong,			\
-								"prevSong": GS.player.queue.prevSong,			\
+								"prevSong": GS.player.queue.previousSong,		\
 								"nextSong": GS.player.queue.nextSong,			\
 								"isPlaying": GS.player.isPlaying,				\
-								"isPaused": GS.player.isPaused					\
+								"isPaused": GS.player.isPaused,					\
+								"isMuted": GS.player.getIsMuted()				\
 							});													\
 						} 														\
 						function sharkzapper_post_message(message) {			\
@@ -61,6 +63,10 @@ if (!document.getElementById('sharkzapperInject')) {
 									case "updateStatus":						\
 										sharkzapper_update_status();			\
 										break; 									\
+									case "toggleMute":							\
+										$("#player_volume").click();			\
+										sharkzapper_update_status();			\
+										break;									\
 								} 												\
 							}													\
 						}, false); 												\

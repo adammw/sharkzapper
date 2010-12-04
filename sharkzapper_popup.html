@@ -2,12 +2,48 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
 <head>
 	<title>SharkZapper</title>
+	<link rel="stylesheet" href="http://static.a.gs-cdn.net/webincludes/css/production.css?20101203.13" type="text/css" />
+	<style type="text/css">
+	body { 
+		min-width: 300px;
+		min-height: 160px;
+	}
+	.hidden { display: none; }
+	#player_controls_playback { float: none; }
+	#thumbnail {
+		position: absolute;
+		right: 8px;
+		top: 8px;
+		z-index: 6000;
+		-webkit-box-shadow: gray 0px 0px 10px;
+	}
+	#thumbnail img#albumart {
+		max-width: 100px;
+	}
+	#songDetails {
+		padding: 8px;
+		margin-right: 120px;
+	}
+	#songName {
+		font-weight: bold;
+	}
+	
+	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
 	<script type="text/javascript">
+	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
+
+	String.prototype.pad = function(l, s){
+    return (l -= this.length) > 0 
+        ? (s = new Array(Math.ceil(l / s.length) + 1).join(s)).substr(0, s.length) + this + s.substr(0, l - s.length) 
+        : this;
+	};
+	
 	$(document).ready(function(){
-		$('#prevSongBtn').click(function(){chrome.extension.sendRequest({"command": "prevSong"});});
-		$('#nextSongBtn').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
-		$('#pauseSongBtn').click(function(){chrome.extension.sendRequest({"command": "pauseSong"});});
+		$('#player_previous').click(function(){chrome.extension.sendRequest({"command": "prevSong"});});
+		$('#player_next').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
+		$('#player_play_pause').click(function(){if($('#player_play_pause').hasClass('pause')) {chrome.extension.sendRequest({"command": "pauseSong"});} else {chrome.extension.sendRequest({"command": "resumeSong"});}});
+		$('#grooveshark').click(function(){chrome.extension.sendRequest({"command":"openGSTab"});});
 	});
 	
 	chrome.extension.onRequest.addListener(
@@ -21,6 +57,36 @@
 					} else {
 						$('button').attr('disabled','disabled');
 					}
+				case 'statusUpdate':
+					console.log('statusUpdate!');
+					if (request.currentSong) {
+						$('#songName').text(request.currentSong.SongName);
+						$('#albumName').text(request.currentSong.AlbumName);
+						$('#artistName').text(request.currentSong.ArtistName);
+						$('#albumart').attr('alt', request.currentSong.AlbumName);
+						$('#player_elapsed').text(Math.floor(request.playbackStatus.position / 1000 / 60) + ":" + ((request.playbackStatus.position / 1000) % 60).toFixed().pad(2, "0"));
+						$('#player_duration').text(Math.floor(request.playbackStatus.duration / 1000 / 60) + ":" + ((request.playbackStatus.duration / 1000) % 60).toFixed().pad(2, "0"));
+						if (request.currentSong.CoverArtFilename) {
+							$('#albumart').attr('src', request.currentSong.artPath + 'm' + request.currentSong.CoverArtFilename);
+						} else {
+							$('#albumart').attr('src', defaultAlbumArtUrl);
+						}
+						$('#albumart').removeClass('hidden');
+						$('#songDetails').removeClass('hidden');
+					} else { 
+						$('#songName').text('');
+						$('#albumName').text('');
+						$('#artistName').text('');
+						$('#player_elapsed').text('');
+						$('#player_duration').text('');
+						$('#albumart').addClass('hidden');
+						$('#songDetails').addClass('hidden');
+					 }
+					if (request.isPaused) {
+						$('#player_play_pause').removeClass('pause');
+					} else {
+						$('#player_play_pause').addClass('pause');
+					}
 			}		
 		}
 	);	
@@ -29,8 +95,24 @@
 	</script>
 </head>
 <body>
-	<button id="prevSongBtn" disabled="disabled">prev</button>
-	<button id="pauseSongBtn" disabled="disabled">pause</button>
-	<button id="nextSongBtn" disabled="disabled">next</button>
+	<div id="header">
+		<a id="grooveshark" href="#">
+			<span>Grooveshark</span>
+		</a>
+	</div>
+	<div id="thumbnail">
+		<img id="albumart" alt="Album Art" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
+		<div id="player_controls_playback">
+			<button id="player_previous" disabled="disabled" class="player_control" title="Previous"></button>
+			<button id="player_play_pause" disabled="disabled" class="player_control" title="Play/Pause"></button>
+			<button id="player_next" disabled="disabled" class="player_control" title="Next"></button>
+		</div>
+	</div>
+	<div id="songDetails">
+		<div><span id="songName"></span></div>
+		<div><span id="albumName"></span></div>
+		<div><span id="artistName"></span></div>
+		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
+	</div>
 </body>
 </html>

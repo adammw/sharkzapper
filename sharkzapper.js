@@ -4,7 +4,8 @@ if (!document.getElementById('sharkzapperInject')) {
 		var request = JSON.parse(e.data);
 		switch (request.command) {
 			case 'contentScriptInit':
-				console.log('Got contentScriptInit!');
+			case 'statusUpdate':
+				chrome.extension.sendRequest(request);
 		}
 	}
 	window.addEventListener("message", receiveMessage, false);  
@@ -14,17 +15,62 @@ if (!document.getElementById('sharkzapperInject')) {
 			switch (request.command) {
 				case 'prevSong':
 				case 'pauseSong':
+				case 'resumeSong':
 				case 'nextSong':
+				case 'updateStatus':
 					window.postMessage(JSON.stringify(request), "http://listen.grooveshark.com");
 			}
 		}
 	);
 
 	inject = document.createElement('script');
-	inject.id = 'sharkzapperInject';
-	inject.innerHTML = 'window.addEventListener("message", function(e){ if (e.origin == "http://listen.grooveshark.com") { var request = JSON.parse(e.data); console.log("sharkzapper:", request); switch (request.command) { case "pauseSong": GS.player.pauseSong(); break; case "nextSong": GS.player.nextSong(); break; } } }, false); window.postMessage(JSON.stringify({"command":"contentScriptInit"}), "http://listen.grooveshark.com");';
+	inject.id = 'sharkzapperInject'; //if($('#player_play_pause').hasClass('pause'))
+	inject.innerHTML = 'function sharkzapper_update_status() { 					\
+							sharkzapper_post_message({							\
+								"command": "statusUpdate",						\
+								"playbackStatus": GS.player.getPlaybackStatus(),\
+								"currentSong": GS.player.currentSong,			\
+								"prevSong": GS.player.queue.prevSong,			\
+								"nextSong": GS.player.queue.nextSong,			\
+								"isPlaying": GS.player.isPlaying,				\
+								"isPaused": GS.player.isPaused					\
+							});													\
+						} 														\
+						function sharkzapper_post_message(message) {			\
+							message.source = "page";							\
+							window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com"); \
+						}														\
+						window.addEventListener("message", function(e){ 		\
+							if (e.origin == "http://listen.grooveshark.com") { 	\
+								var request = JSON.parse(e.data); 				\
+								if (request.source == "page") { return; } 		\
+								console.log("sharkzapper:", "<<<", request);	\
+								switch (request.command) { 						\
+									case "pauseSong": 							\
+										GS.player.pauseSong(); 					\
+										break;									\
+									case "resumeSong": 							\
+										GS.player.resumeSong(); 				\
+										break;									\
+									case "prevSong":							\
+										GS.player.previousSong(); 				\
+										break; 									\
+									case "nextSong":							\
+										GS.player.nextSong(); 					\
+										break; 									\
+									case "updateStatus":						\
+										sharkzapper_update_status();			\
+										break; 									\
+								} 												\
+							}													\
+						}, false); 												\
+						sharkzapper_post_message({"command":"contentScriptInit"});			\
+						$.subscribe("gs.player.nowplaying",sharkzapper_update_status);		\
+						$.subscribe("gs.player.queue.change",sharkzapper_update_status);	\
+						$.subscribe("gs.player.playing.continue",sharkzapper_update_status);\
+						$.subscribe("gs.player.paused",sharkzapper_update_status);';
 	document.body.appendChild(inject);
 
 } else {
-	console.log('sharkzapper already injected, aborting!');
+	console.log('sharkzapper already injected, aborting!');			
 }

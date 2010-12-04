@@ -40,9 +40,21 @@
 		margin: 0px;
 		padding: 0px;
 		width: 20px;
+		height: 20px;
 	}
 	#player_volume.mute {
 		background: url(mute_icon.png) no-repeat;
+	}
+    #search {
+		padding: 8px;
+		clear: both;
+	}
+	#searchBox {
+		background: #333;
+		color: #FFF;
+		border-radius: 4px;
+		margin-top: 4px;
+		padding: 2px;	
 	}
 	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
@@ -61,6 +73,11 @@
 		$('#player_play_pause').click(function(){if($('#player_play_pause').hasClass('pause')) {chrome.extension.sendRequest({"command": "pauseSong"});} else {chrome.extension.sendRequest({"command": "resumeSong"});}});
 		$('#grooveshark').click(function(){chrome.extension.sendRequest({"command":"openGSTab"});});
 		$('#player_volume').click(function(){chrome.extension.sendRequest({"command": "toggleMute"});});
+		$('#search_form').submit(function(){ 
+			chrome.extension.sendRequest({"command":"performSearch", "query": $('#searchBox').val()});
+			chrome.extension.sendRequest({"command":"openGSTab"});
+		    $('#searchBox').val(''); $('#searchBox').blur(); return false; 
+		});
 	});
 	
 	chrome.extension.onRequest.addListener(
@@ -93,7 +110,7 @@
 						$('#player_play_pause').removeClass('disabled');
 						$('#albumart').removeClass('hidden');
 						$('#songDetails').removeClass('hidden');
-						$('#lowerControls').removeClass('hidden');
+						$('#player_volume').removeClass('hidden');
 						$('body').removeClass('notPlaying');
 					} else { 
 						$('#songName').text('');
@@ -105,7 +122,7 @@
 						$('#player_play_pause').addClass('disabled');
 						$('#albumart').addClass('hidden');
 						$('#songDetails').addClass('hidden');
-						$('#lowerControls').addClass('hidden');
+						$('#player_volume').addClass('hidden');
 						$('body').addClass('notPlaying');
 					}
 					if (request.prevSong) {
@@ -160,8 +177,13 @@
 		<div><span id="artistName"></span></div>
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
 	</div>
-	<div id="lowerControls" class="hidden">
-		<div class="fltrht"><button id="player_volume" class="player_control" title="Volume Mute"></button></div>
+	<div id="lowerControls">
+		<div class="fltrht"><button id="player_volume" class="player_control hidden" title="Volume Mute"></button></div>
+		<div id="search">
+			<form id="search_form">
+			<input type="search" id="searchBox" placeholder="Search for a song" />
+			</form>
+		</div>
 	</div>
 </body>
 </html>

@@ -19,6 +19,7 @@ if (!document.getElementById('sharkzapperInject')) {
 				case 'nextSong':
 				case 'updateStatus':
 				case 'toggleMute':
+				case 'performSearch':
 					window.postMessage(JSON.stringify(request), "http://listen.grooveshark.com");
 			}
 		}
@@ -66,6 +67,9 @@ if (!document.getElementById('sharkzapperInject')) {
 									case "toggleMute":							\
 										$("#player_volume").click();			\
 										sharkzapper_update_status();			\
+										break;									\
+									case "performSearch":						\
+										GS.router.performSearch("all",request.query); \
 										break;									\
 								} 												\
 							}													\

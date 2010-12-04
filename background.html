@@ -48,8 +48,8 @@
 		function(request, sender, sendResponse) {
 			console.log(request);
 			if (!request.command) return;
-			// Pass through cross events
-			if (sender.tab) { chrome.extension.sendRequest(request); }
+			// Pass through cross events (but check they are comming only from the first grooveshark tab)
+			if (sender.tab && sender.tab.id == gsTabs[0]) { chrome.extension.sendRequest(request); }
 			else if (gsTabs.length > 0) { chrome.tabs.sendRequest(gsTabs[0], request); }
 			// Handle commands
 			switch (request.command) {
@@ -63,6 +63,18 @@
 					break;
 				case 'openGSTab':
 					open_gs_tab();
+					break;
+				case 'getTabCount':
+					get_gs_tab(function(){
+						for (i=1;i<gsTabs.length;i++) {
+							chrome.tabs.sendRequest(gsTabs[i], {"command":"tabCount", "tabCount": gsTabs.length});
+						}
+					});
+					break;
+				case 'firstTabNavigate':
+					chrome.tabs.remove(sender.tab.id);
+					open_gs_tab();
+					break;
 			}
 		}
 	);

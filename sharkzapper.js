@@ -1,10 +1,13 @@
 if (!document.getElementById('sharkzapperInject')) {
 
+	chrome.extension.sendRequest({"command": "getTabCount"});
+
 	function receiveMessage(e) {
 		var request = JSON.parse(e.data);
 		switch (request.command) {
 			case 'contentScriptInit':
 			case 'statusUpdate':
+			case 'firstTabNavigate':
 				chrome.extension.sendRequest(request);
 		}
 	}
@@ -21,6 +24,19 @@ if (!document.getElementById('sharkzapperInject')) {
 				case 'toggleMute':
 				case 'performSearch':
 					window.postMessage(JSON.stringify(request), "http://listen.grooveshark.com");
+					break;
+				case 'tabCount':
+					console.log('There are ' + request.tabCount + ' open grooveshark tabs!');
+					if (request.tabCount != 1) {
+						if (!document.getElementById('sharkzapper_warning_bar')) {
+							warn = document.createElement('div');
+							warn.id = 'sharkzapper_warning_bar';
+							warn.innerHTML = '<div style="position: absolute; top: 0px; z-index: 100000; color: black; width: 100%; text-align: center; font-size: 120%; padding: 12px; background-color: rgba(255, 255, 224, 0.8); ">Grooveshark is alredy open in <a href="javascript:window.postMessage(JSON.stringify({\'command\':\'firstTabNavigate\'}), \'http://listen.grooveshark.com\'); ">another tab</a>, please close this tab if you wish to use SharkZapper. <span style="float:right; margin-right: 24px;"><a href="javascript:document.body.removeChild(document.getElementById(\'sharkzapper_warning_bar\'));">close</a></span></div>';
+							document.body.appendChild(warn);
+						}
+						if (document.getElementById('sharkzapperInject')) { document.body.removeChild(document.getElementById('sharkzapperInject')); }
+					}
+					break;
 			}
 		}
 	);

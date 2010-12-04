@@ -149,6 +149,7 @@
 						$('#albumart').removeClass('hidden');
 						$('#songDetails').removeClass('hidden');
 						$('#player_volume').removeClass('hidden');
+						$('#playerDetails_nowPlaying').removeClass('hidden');
 						$('body').removeClass('notPlaying');
 					} else { 
 						songId = null;
@@ -162,6 +163,7 @@
 						$('#albumart').addClass('hidden');
 						$('#songDetails').addClass('hidden');
 						$('#player_volume').addClass('hidden');
+						$('#playerDetails_nowPlaying').addClass('hidden');
 						$('body').addClass('notPlaying');
 					}
 					if (request.prevSong) {
@@ -217,7 +219,7 @@
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
 	</div>
 	<div id="lowerControls">
-		<div id="playerDetails_nowPlaying">
+		<div id="playerDetails_nowPlaying" class="hidden">
 			<a class="btn btn_style1 icon add" style="border-radius: 2px;"  title="Add to My Music" id="addToLibraryBtn"></a>
 			<a class="btn btn_style1 icon favorite" style="border-radius: 2px;" title="Add to Favorites" id="addToFavoritesBtn"></a>
 		</div>

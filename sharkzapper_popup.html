@@ -45,7 +45,7 @@
 	#player_volume.mute {
 		background: url(mute_icon.png) no-repeat;
 	}
-    #search {
+    	#search {
 		padding: 8px;
 		clear: both;
 	}
@@ -55,6 +55,49 @@
 		border-radius: 4px;
 		margin-top: 4px;
 		padding: 2px 2px 2px 16px;	
+	}
+	#playerDetails_nowPlaying .btn.add {
+		border-top-left-radius: 6px;
+		border-bottom-left-radius: 6px;
+	}
+	#playerDetails_nowPlaying .btn.favorite {
+		border-top-right-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+	#playerDetails_nowPlaying .btn.radio_btn {
+		display: none;
+	}
+	#playerDetails_nowPlaying.radioOn .btn.radio_btn {
+		display: block;
+	}
+	#playerDetails_nowPlaying.radioOn .btn.favorite {
+		border-radius: 0px;
+	}
+	#playerDetails_nowPlaying.radioOn .frown {
+		border-top-right-radius: 6px;
+		border-bottom-right-radius: 6px;
+	}
+	#playerDetails_nowPlaying .btn {
+		margin: 0px 1px 0px 0px;
+		width: 20px;
+	}
+	#playerDetails_nowPlaying .frown, #playerDetails_nowPlaying .smile {
+		background: url(smile_frown_icons.png) no-repeat;
+	}
+	#playerDetails_nowPlaying .frown {radioSmileBtn
+		background-position: -20px 0px;
+	}
+	#playerDetails_nowPlaying .smile:hover {background-position: 0 -18px;}
+	#playerDetails_nowPlaying .smile:active {background-position: 0 -36px;}
+	#playerDetails_nowPlaying .smile.selected {background-position: 0 -54px;}
+	#playerDetails_nowPlaying .smile.selected:active {background-position: 0 -36px;}
+	#playerDetails_nowPlaying .frown {background-position: -20px 0;}
+	#playerDetails_nowPlaying .frown:hover {background-position: -20px -18px;}
+	#playerDetails_nowPlaying .frown:active {background-position: -20px -36px;}
+	#playerDetails_nowPlaying .frown.selected {background-position: -20px -54px;}
+	#playerDetails_nowPlaying .frown.selected:active {background-position: -20px -36px;}
+	#player_times { 
+		width: auto;
 	}
 	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
@@ -102,6 +145,12 @@
 				sendMessage({"command": "addToSongFavorites", "songId": songId});
 			}
 			//$('#addToFavoritesBtn').toggleClass('selected');
+		});
+		$('#radioSmileBtn').click(function(){
+			sendMessage({"command": "toggleSmile"});
+		});
+		$('#radioFrownBtn').click(function(){
+			sendMessage({"command": "toggleFrown"});
 		});
 		$('#search_form').submit(function(){ 
 			sendMessage({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
@@ -199,6 +248,21 @@
 					} else {
 						$('#player_volume').removeClass('mute');
 					}
+					if (request.isRadio) {
+						$('#playerDetails_nowPlaying').addClass('radioOn');
+						if (request.isSmile) {
+							$('#radioSmileBtn').addClass('selected');
+						} else {
+							$('#radioSmileBtn').removeClass('selected');
+						}
+						if (request.isFrown) {
+							$('#radioFrownBtn').addClass('selected');
+						} else {
+							$('#radioFrownBtn').removeClass('selected');
+						}	
+					} else {
+						$('#playerDetails_nowPlaying').removeClass('radioOn');
+					}
 					break;
 			}		
 		}
@@ -229,8 +293,10 @@
 	</div>
 	<div id="lowerControls">
 		<div id="playerDetails_nowPlaying" class="hidden">
-			<a class="btn btn_style1 icon add" style="border-radius: 2px;"  title="Add to My Music" id="addToLibraryBtn"></a>
-			<a class="btn btn_style1 icon favorite" style="border-radius: 2px;" title="Add to Favorites" id="addToFavoritesBtn"></a>
+			<a class="btn btn_style1 icon add"  title="Add to My Music" id="addToLibraryBtn"></a>
+			<a class="btn btn_style1 icon favorite" title="Add to Favorites" id="addToFavoritesBtn"></a>
+			<a class="btn btn_style1 radio_btn icon smile" title="Smile" id="radioSmileBtn"></a>
+			<a class="btn btn_style1 radio_btn icon frown" title="Frown" id="radioFrownBtn"></a>
 		</div>
 		<div class="fltrht"><button id="player_volume" class="player_control hidden" title="Volume Mute"></button></div>
 		<div id="search">

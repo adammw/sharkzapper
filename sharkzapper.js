@@ -81,21 +81,30 @@ function inject_sharkzapper() {
     inject = document.createElement('script');
     inject.id = 'sharkzapperInject'; //if($('#player_play_pause').hasClass('pause'))
     inject.innerHTML = '    function sharkzapper_update_status() {\
-				                current_song = GS.player.currentSong;\
-				                if (current_song) {\
-					                current_song.fromLibrary = GS.user.library.songs.hasOwnProperty(current_song.SongID);\
-					                current_song.isFavorite = GS.user.favorites.songs.hasOwnProperty(current_song.SongID);\
-				                }\
-				                sharkzapper_post_message({\
+                                gs_status = {\
 					                "command": "statusUpdate",\
 					                "playbackStatus": GS.player.getPlaybackStatus(),\
-					                "currentSong": current_song,\
-					                "prevSong": GS.player.queue.previousSong,\
-					                "nextSong": GS.player.queue.nextSong,\
+					                "currentSong": GS.player.currentSong,\
 					                "isPlaying": GS.player.isPlaying,\
 					                "isPaused": GS.player.isPaused,\
 					                "isMuted": GS.player.getIsMuted()\
-				                });\
+				                };\
+				                if (gs_status.currentSong) {\
+					                gs_status.currentSong.fromLibrary = GS.user.library.songs.hasOwnProperty(gs_status.currentSong.SongID);\
+					                gs_status.currentSong.isFavorite = GS.user.favorites.songs.hasOwnProperty(gs_status.currentSong.SongID);\
+				                }\
+                                if (GS.player.queue) {\
+					                gs_status.prevSong = GS.player.queue.previousSong;\
+					                gs_status.nextSong = GS.player.queue.nextSong;\
+                                }\
+                                if ($("#queue_list li.queue-item-active div.radio_options").hasClass("active")) {\
+                                    gs_status.isRadio = true;\
+                                    gs_status.isSmile = $("#queue_list li.queue-item-active div.radio_options a.smile").hasClass("active");\
+                                    gs_status.isFrown = $("#queue_list li.queue-item-active div.radio_options a.frown").hasClass("active");\
+                                } else {\
+                                    gs_status.isRadio = false;\
+                                }\
+				                sharkzapper_post_message(gs_status);\
 		                    }\
 			                function sharkzapper_post_message(message) {\
                                 console.log("sharkzapper:", ">P>", message);\
@@ -139,6 +148,12 @@ function inject_sharkzapper() {
 								        case "removeFromSongFavorites":\
 									        if (request.songId) GS.user.removeFromSongFavorites(request.songId);\
 									        break;\
+                                        case "toggleSmile":\
+                                            $("#queue_list li.queue-item-active div.radio_options a.smile").click();\
+                                            break;\
+                                        case "toggleFrown":\
+                                            $("#queue_list li.queue-item-active div.radio_options a.frown").click();\
+                                            break;\
 								        case "performSearch":\
 									        GS.router.performSearch("all",request.query);\
 									        break;\

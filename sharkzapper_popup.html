@@ -110,6 +110,7 @@
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var songId = null;
 	var tabId = null;
+	var debug = false;
 
 	String.prototype.pad = function(l, s){
     return (l -= this.length) > 0 
@@ -119,7 +120,7 @@
 
 	function sendMessage(request) {
 		request.source = "popup";
-		console.log("sharkzapper:",">>>",request);
+		if (debug) console.log("sharkzapper:",">>>",request.command,request);
 		chrome.extension.sendRequest(request);
 	}
 	
@@ -166,7 +167,7 @@
 	
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
-			console.log("sharkzapper:","<<<",request,sender);
+			if (debug) console.log("sharkzapper:","<<<",request.command,request,sender);
 			if (!request.command) return;
 			if (tabId && sender.tab && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {

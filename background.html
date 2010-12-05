@@ -6,7 +6,8 @@
 	<script type="text/javascript">	
 	var gsTabs = [];
 	var notifications = [];
-	
+	var debug = false;
+
 	// Get open Grooveshark tabs
 	function get_gs_tab(success_callback, fail_callback, arg) {
 		chrome.windows.getAll({'populate':true}, function(win) {
@@ -31,7 +32,7 @@
 		if (gsTabs.length > 0) {
 			chrome.tabs.executeScript(gsTabs[0], {'file':'jquery-1.4.4.min.js'});		
 			chrome.tabs.executeScript(gsTabs[0], {'file':'sharkzapper.js'});
-			console.log('Injected scripts into existing tab #' + gsTabs[0]);
+			if (debug) console.log('Injected scripts into existing tab #' + gsTabs[0]);
 		}
 	}
 
@@ -51,15 +52,20 @@
 	// Respond to requests
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
-			console.log("sharkzapper:","<<<",request);
+			if (debug) console.log("sharkzapper:","<<<",request.command,request);
 			if (!request.command) return;
 			// Pass through cross events (but check they are comming only from the first grooveshark tab)
-			if (sender.tab && sender.tab.id == gsTabs[0]) { chrome.extension.sendRequest(request); console.log("sharkzapper:",">E>",request);}
-			else if (gsTabs.length > 0) { chrome.tabs.sendRequest(gsTabs[0], request); console.log("sharkzapper:",">T>",request);}
+			if (sender.tab && sender.tab.id == gsTabs[0]) { 
+				chrome.extension.sendRequest(request); 
+				if (debug) console.log("sharkzapper:",">E>",request.command,request);
+			} else if (gsTabs.length > 0) { 
+				chrome.tabs.sendRequest(gsTabs[0], request); 
+				if (debug) console.log("sharkzapper:",">T>",request.command,request);
+			}
 			// Handle commands
 			switch (request.command) {
 				case 'popupInit':
-					console.log('Got popup init, re-checking tabs');
+					if (debug) console.log('Got popup init, re-checking tabs');
 					//get_gs_tab(function(sendResponse) { return function(){ console.log('Sending popup init response'); } }(sendResponse));
 					get_gs_tab(function(){
 						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0]});
@@ -74,7 +80,7 @@
 						for (i=1;i<gsTabs.length;i++) {
 							chrome.tabs.sendRequest(gsTabs[i], {"command":"tabCount", "tabCount": gsTabs.length});
 						}
-						console.log("sharkzapper:",">ALLT>",request);
+						if (debug) console.log("sharkzapper:",">ALLT>",request.command, request);
 					});
 					break;
 				case 'firstTabNavigate':
@@ -82,7 +88,6 @@
 					open_gs_tab();
 					break;
 				case 'notification':
-					console.log('notification',request);
 					chrome.tabs.get(gsTabs[0], function(request){ return function(tab){
 						if (tab.selected) return; //ignore notifications if tab is open
 						if (window.webkitNotifications) {

@@ -1,4 +1,5 @@
 var recieveMessage, sendRequest, inject, tabnavListener;
+var debug = false;
 function inject_sharkzapper() {
 
     sendRequest({"command": "getTabCount"});
@@ -6,7 +7,7 @@ function inject_sharkzapper() {
     function receiveMessage(e) {
         if (e.origin != "http://listen.grooveshark.com") return;
 	    var request = JSON.parse(e.data);
-        console.log('sharkzapper:', '<(M)C<', request);
+        if (debug) console.log('sharkzapper:', '<(M)C<', request);
 	    switch (request.command) {
 		    //case 'contentScriptInit':
 		    case 'statusUpdate':
@@ -20,23 +21,23 @@ function inject_sharkzapper() {
                 receiveMessage = function(e){ console.error('got messages from dead function',e); };
                 receiveRequest = function(e){ console.error('got requests from dead function',e); };
                 if (request.injectNew) {
-                    console.log("cleanup stage2 done! attempting to inject new sharkzapper");
+                    if (debug) console.log("cleanup stage2 done! attempting to inject new sharkzapper");
                     inject_sharkzapper();
-                    console.log("new sharkzapper injected, hopefully");
+                    if (debug) console.log("new sharkzapper injected, hopefully");
                 } else {
-                    console.log("cleanup stage2 done! leaving.");
+                    if (debug) console.log("cleanup stage2 done! leaving.");
                 }
                 break;
 	    }
     }
 
     function sendMessage(message) {
-        console.log('sharkzapper:', '>(M)C>', message);
+        if (debug) console.log('sharkzapper:', '>(M)C>', message);
         window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com");
     }
 
     function recieveRequest(request, sender, sendResponse) {
-        console.log('sharkzapper:', '<(R)C<', request, sender);
+        if (debug) console.log('sharkzapper:', '<(R)C<', request, sender);
 	    switch (request.command) {
 		    case 'prevSong':
 		    case 'pauseSong':
@@ -54,7 +55,7 @@ function inject_sharkzapper() {
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
-			    console.log('There are ' + request.tabCount + ' open grooveshark tabs!');
+			    if (debug) console.log('There are ' + request.tabCount + ' open grooveshark tabs!');
 			    if (request.tabCount != 1) {
 				    if (!document.getElementById('sharkzapper_warning_bar')) {
 					    warn = document.createElement('div');
@@ -72,7 +73,7 @@ function inject_sharkzapper() {
 
     function sendRequest(request) {
         if (!request.source) request.source = "contentscript";
-        console.log('sharkzapper:', '>(R)C>', request);
+        if (debug) console.log('sharkzapper:', '>(R)C>', request);
         chrome.extension.sendRequest(request);
     }
 
@@ -83,7 +84,8 @@ function inject_sharkzapper() {
 
     inject = document.createElement('script');
     inject.id = 'sharkzapperInject'; //if($('#player_play_pause').hasClass('pause'))
-    inject.innerHTML = '    function sharkzapper_update_status() {\
+    inject.innerHTML = '        var sharkzapper_debug = false;\
+                                function sharkzapper_update_status() {\
                                 gs_status = {\
 					                "command": "statusUpdate",\
 					                "playbackStatus": GS.player.getPlaybackStatus(),\
@@ -110,7 +112,7 @@ function inject_sharkzapper() {
 				                sharkzapper_post_message(gs_status);\
 		                    }\
 			                function sharkzapper_post_message(message) {\
-                                console.log("sharkzapper:", ">P>", message);\
+                                if (sharkzapper_debug) console.log("sharkzapper:", ">P>", message);\
 				                message.source = "page";\
 				                window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com");\
 			                }\
@@ -122,7 +124,7 @@ function inject_sharkzapper() {
 						        if (e.origin == "http://listen.grooveshark.com") {\
 							        var request = JSON.parse(e.data);\
 							        if (request.source == "page") { return; }\
-							        console.log("sharkzapper:", "<P<", request);\
+							        if (sharkzapper_debug) console.log("sharkzapper:", "<P<", request);\
 							        switch (request.command) {\
 								        case "pauseSong":\
 									        GS.player.pauseSong();\
@@ -184,7 +186,7 @@ function inject_sharkzapper() {
     document.body.appendChild(inject);
 }
 function clean_up(injectNew) {
-    console.log('running cleanup with injectNew:', injectNew);			
+    if (debug) console.log('running cleanup with injectNew:', injectNew);			
 	// clean up old injection
     document.body.removeChild(document.getElementById('sharkzapperInject'));
     cleanup = document.createElement('script');
@@ -206,7 +208,7 @@ function clean_up(injectNew) {
                         $.unsubscribe("gs.auth.library.add",sharkzapper_update_status);\
                         $.unsubscribe("gs.auth.library.remove",sharkzapper_update_status);\
                         document.body.removeChild(document.getElementById("sharkzapperCleanUp"));\
-                        console.log("cleanup stage1 done!");';
+                        if (sharkzapper_debug) console.log("cleanup stage1 done!");';
     cleanup.innerHTML=js;
     document.body.appendChild(cleanup);
 }
@@ -218,7 +220,7 @@ function tabnavListener(e){
     window.removeEventListener("message",tabnavListener,false);
 }
 if (document.getElementById('sharkzapperInject')) {
-    console.log('sharkzapper already injected, trying to remove and replace with us! (crosses fingers)');			
+    if (debug) console.log('sharkzapper already injected, trying to remove and replace with us! (crosses fingers)');			
 	clean_up(true);
 } else {
     inject_sharkzapper();

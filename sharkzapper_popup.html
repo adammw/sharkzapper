@@ -184,7 +184,6 @@
 					if (request.tabId) tabId = request.tabId;
 					break;
 				case 'statusUpdate':
-					console.log('statusUpdate!');
 					if (request.currentSong) {
 						songId = request.currentSong.SongID;
 						$('#songName').text(request.currentSong.SongName);

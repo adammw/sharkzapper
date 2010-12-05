@@ -108,7 +108,7 @@
 		function(request, sender, sendResponse) {
 			console.log(request);
 			if (!request.command) return;
-			if (tabId && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
+			if (tabId && sender.tab && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {
 				case 'popupUpdate':
 					if (request.enabled) {

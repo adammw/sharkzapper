@@ -8,9 +8,10 @@ function inject_sharkzapper() {
 	    var request = JSON.parse(e.data);
         console.log('sharkzapper:', '<(M)C<', request);
 	    switch (request.command) {
-		    case 'contentScriptInit':
+		    //case 'contentScriptInit':
 		    case 'statusUpdate':
 		    case 'firstTabNavigate':
+            case 'notification':
 			    sendRequest(request);
                 break;
             case 'removeListener':
@@ -113,6 +114,10 @@ function inject_sharkzapper() {
 				                message.source = "page";\
 				                window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com");\
 			                }\
+                            function sharkzapper_handle_notification(n) {\
+                                n.command="notification";\
+                                sharkzapper_post_message(n);\
+                            }\
 					        function sharkzapper_handle_message(e) {\
 						        if (e.origin == "http://listen.grooveshark.com") {\
 							        var request = JSON.parse(e.data);\
@@ -164,6 +169,7 @@ function inject_sharkzapper() {
 					        }\
                             window.addEventListener("message", sharkzapper_handle_message, false);\
 					        sharkzapper_post_message({"command":"contentScriptInit"});\
+                            $.subscribe("gs.notification",sharkzapper_handle_notification);\
 					        $.subscribe("gs.player.nowplaying",sharkzapper_update_status);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\
 					        $.subscribe("gs.player.playing.continue",sharkzapper_update_status);\
@@ -189,10 +195,16 @@ function clean_up(injectNew) {
     } else {
         js += 'sharkzapper_post_message({"command":"removeListener","injectNew":false});';
     }
-    js += '              $.unsubscribe("gs.player.nowplaying",sharkzapper_update_status);\
-					    $.unsubscribe("gs.player.queue.change",sharkzapper_update_status);\
-					    $.unsubscribe("gs.player.playing.continue",sharkzapper_update_status);\
-					    $.unsubscribe("gs.player.paused",sharkzapper_update_status);\
+    js += '             $.unsubscribe("gs.notification",sharkzapper_handle_notification);\
+				        $.unsubscribe("gs.player.nowplaying",sharkzapper_update_status);\
+				        $.unsubscribe("gs.player.queue.change",sharkzapper_update_status);\
+				        $.unsubscribe("gs.player.playing.continue",sharkzapper_update_status);\
+				        $.unsubscribe("gs.player.paused",sharkzapper_update_status);\
+                        $.unsubscribe("gs.auth.song.update",sharkzapper_update_status);\
+                        $.unsubscribe("gs.auth.favorites.songs.add",sharkzapper_update_status);\
+                        $.unsubscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\
+                        $.unsubscribe("gs.auth.library.add",sharkzapper_update_status);\
+                        $.unsubscribe("gs.auth.library.remove",sharkzapper_update_status);\
                         document.body.removeChild(document.getElementById("sharkzapperCleanUp"));\
                         console.log("cleanup stage1 done!");';
     cleanup.innerHTML=js;

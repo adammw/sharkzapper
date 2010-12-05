@@ -15,6 +15,7 @@
 	},
 	"permissions": [
 		"tabs",
+		"notifications",
 		"http://*.grooveshark.com/"
 	],
 	"background_page": "background.html",

@@ -5,6 +5,7 @@
 	<!--<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>-->
 	<script type="text/javascript">	
 	var gsTabs = [];
+	var notifications = [];
 	
 	// Get open Grooveshark tabs
 	function get_gs_tab(success_callback, fail_callback, arg) {
@@ -79,6 +80,18 @@
 				case 'firstTabNavigate':
 					chrome.tabs.remove(sender.tab.id);
 					open_gs_tab();
+					break;
+				case 'notification':
+					console.log('notification',request);
+					chrome.tabs.get(gsTabs[0], function(request){ return function(tab){
+						if (tab.selected) return; //ignore notifications if tab is open
+						if (window.webkitNotifications) {
+							notification = window.webkitNotifications.createNotification('','grooveshark',request.message); 
+							notification.ondisplay = function() { setTimeout(function(){ notifications.shift().cancel();}, 5000); };
+							notification.show();
+							notifications.push(notification);
+						}
+					}}(request));
 					break;
 			}
 		}

@@ -7,6 +7,8 @@
 	body { 
 		min-width: 300px;
 		min-height: 160px;
+		-webkit-user-select: none;
+		cursor: default;
 	}
 	body.notPlaying {
 		min-height: 60px;
@@ -46,7 +48,7 @@
 		background: url(mute_icon.png) no-repeat;
 	}
     	#search {
-		padding: 8px;
+		padding: 0px 8px 4px;
 		clear: both;
 	}
 	#searchBox {
@@ -55,6 +57,9 @@
 		border-radius: 4px;
 		margin-top: 4px;
 		padding: 2px 2px 2px 16px;	
+	}
+	#playerDetails_nowPlaying {
+		height: 24px;
 	}
 	#playerDetails_nowPlaying .btn.add {
 		border-top-left-radius: 6px;

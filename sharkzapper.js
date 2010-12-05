@@ -167,7 +167,14 @@ function inject_sharkzapper() {
 					        $.subscribe("gs.player.nowplaying",sharkzapper_update_status);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\
 					        $.subscribe("gs.player.playing.continue",sharkzapper_update_status);\
-					        $.subscribe("gs.player.paused",sharkzapper_update_status);';
+					        $.subscribe("gs.player.paused",sharkzapper_update_status);\
+                            $.subscribe("gs.auth.song.update",sharkzapper_update_status);\
+                            $.subscribe("gs.auth.favorites.songs.add",sharkzapper_update_status);\
+                            $.subscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\
+                            $.subscribe("gs.auth.library.add",sharkzapper_update_status);\
+                            $.subscribe("gs.auth.library.remove",sharkzapper_update_status);\
+                            \
+                            $(".queueSong .smile, .queueSong .frown").click(sharkzapper_update_status);';
     document.body.appendChild(inject);
 }
 function clean_up(injectNew) {

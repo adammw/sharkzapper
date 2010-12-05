@@ -48,6 +48,8 @@ function inject_sharkzapper() {
 		    case 'removeFromLibrary':
 		    case 'addToSongFavorites':
 		    case 'removeFromSongFavorites':
+            case 'toggleSmile':
+            case 'toggleFrown':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':

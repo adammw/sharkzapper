@@ -50,11 +50,11 @@
 	// Respond to requests
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
-			console.log(request);
+			console.log("sharkzapper:","<<<",request);
 			if (!request.command) return;
 			// Pass through cross events (but check they are comming only from the first grooveshark tab)
-			if (sender.tab && sender.tab.id == gsTabs[0]) { chrome.extension.sendRequest(request); }
-			else if (gsTabs.length > 0) { chrome.tabs.sendRequest(gsTabs[0], request); }
+			if (sender.tab && sender.tab.id == gsTabs[0]) { chrome.extension.sendRequest(request); console.log("sharkzapper:",">E>",request);}
+			else if (gsTabs.length > 0) { chrome.tabs.sendRequest(gsTabs[0], request); console.log("sharkzapper:",">T>",request);}
 			// Handle commands
 			switch (request.command) {
 				case 'popupInit':
@@ -73,6 +73,7 @@
 						for (i=1;i<gsTabs.length;i++) {
 							chrome.tabs.sendRequest(gsTabs[i], {"command":"tabCount", "tabCount": gsTabs.length});
 						}
+						console.log("sharkzapper:",">ALLT>",request);
 					});
 					break;
 				case 'firstTabNavigate':

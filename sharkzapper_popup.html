@@ -68,45 +68,51 @@
         ? (s = new Array(Math.ceil(l / s.length) + 1).join(s)).substr(0, s.length) + this + s.substr(0, l - s.length) 
         : this;
 	};
+
+	function sendMessage(request) {
+		request.source = "popup";
+		console.log("sharkzapper:",">>>",request);
+		chrome.extension.sendRequest(request);
+	}
 	
 	$(document).ready(function(){
-		$('#player_previous').click(function(){chrome.extension.sendRequest({"command": "prevSong"});});
-		$('#player_next').click(function(){chrome.extension.sendRequest({"command": "nextSong"});});
+		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
+		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
 		$('#player_play_pause').click(function(){
 			if($('#player_play_pause').hasClass('pause')) {
-				chrome.extension.sendRequest({"command": "pauseSong"});
+				sendMessage({"command": "pauseSong"});
 			} else {
-				chrome.extension.sendRequest({"command": "resumeSong"});
+				sendMessage({"command": "resumeSong"});
 			}
 		});
-		$('#grooveshark').click(function(){chrome.extension.sendRequest({"command":"openGSTab"});});
-		$('#player_volume').click(function(){chrome.extension.sendRequest({"command": "toggleMute"});});
+		$('#grooveshark').click(function(){sendMessage({"command":"openGSTab"});});
+		$('#player_volume').click(function(){sendMessage({"command": "toggleMute"});});
 		$('#addToLibraryBtn').click(function(){
 			if ($('#addToLibraryBtn').hasClass('selected')) {
-				chrome.extension.sendRequest({"command": "removeFromLibrary", "songId": songId});
+				sendMessage({"command": "removeFromLibrary", "songId": songId});
 			} else {
-				chrome.extension.sendRequest({"command": "addToLibrary", "songId": songId});
+				sendMessage({"command": "addToLibrary", "songId": songId});
 			}
 			//$('#addToLibraryBtn').toggleClass('selected');
 		});
 		$('#addToFavoritesBtn').click(function(){
 			if ($('#addToFavoritesBtn').hasClass('selected')) {
-				chrome.extension.sendRequest({"command": "removeFromSongFavorites", "songId": songId});
+				sendMessage({"command": "removeFromSongFavorites", "songId": songId});
 			} else {
-				chrome.extension.sendRequest({"command": "addToSongFavorites", "songId": songId});
+				sendMessage({"command": "addToSongFavorites", "songId": songId});
 			}
 			//$('#addToFavoritesBtn').toggleClass('selected');
 		});
 		$('#search_form').submit(function(){ 
-			chrome.extension.sendRequest({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
-			chrome.extension.sendRequest({"command":"performSearch", "query": $('#searchBox').val()});
-		    $('#searchBox').val(''); $('#searchBox').blur(); return false; 
+			sendMessage({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
+			sendMessage({"command":"performSearch", "query": $('#searchBox').val()});
+		    	$('#searchBox').val(''); $('#searchBox').blur(); return false; 
 		});
 	});
 	
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
-			console.log(request);
+			console.log("sharkzapper:","<<<",request,sender);
 			if (!request.command) return;
 			if (tabId && sender.tab && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {
@@ -198,7 +204,7 @@
 		}
 	);	
 
-	chrome.extension.sendRequest({"command": "popupInit"});
+	sendMessage({"command": "popupInit"});
 	</script>
 </head>
 <body>

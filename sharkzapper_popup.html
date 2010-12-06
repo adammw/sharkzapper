@@ -101,6 +101,9 @@
 	#playerDetails_nowPlaying .frown:active {background-position: -20px -36px;}
 	#playerDetails_nowPlaying .frown.selected {background-position: -20px -54px;}
 	#playerDetails_nowPlaying .frown.selected:active {background-position: -20px -36px;}
+	#player_play_pause.buffering {
+	    background: url(http://static.a.gs-cdn.net/webincludes/css/images/player/loading.gif) 8px 8px no-repeat, url(http://static.a.gs-cdn.net/webincludes/css/images/player/controls.png) no-repeat -150px 0px;
+	}
 	#player_times { 
 		width: auto;
 	}
@@ -108,6 +111,7 @@
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
 	<script type="text/javascript">
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
+	var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];
 	var songId = null;
 	var tabId = null;
 	var debug = false;
@@ -236,6 +240,18 @@
 						$('#player_previous').addClass('disabled');	
 						$('#player_previous').attr('disabled','disabled');
 					}
+					$('#player_play_pause').toggleClass('pause',!request.isPaused && request.isPlaying); //inverse logic
+					$('#player_play_pause').toggleClass('paused',request.isPaused);
+					$('#player_play_pause').toggleClass('playing',request.isPlaying);
+				    if (request.playbackStatus) {
+				        var status = statusMap[request.playbackStatus.status];
+		                if (debug) console.log("status:",status);
+                        if (status == 'PLAY_STATUS_LOADING' || status == 'PLAY_STATUS_BUFFERING') {
+                            $('#player_play_pause').addClass('buffering').removeClass('pause');
+                        } else {
+                            $('#player_play_pause').removeClass('buffering');
+                        }
+				    }
 					if (request.nextSong) {
 						$('#player_next').removeClass('disabled');						
 						$('#player_next').removeAttr('disabled');
@@ -243,9 +259,6 @@
 						$('#player_next').addClass('disabled');
 						$('#player_next').attr('disabled','disabled');
 					}
-					$('#player_play_pause').toggleClass('pause',!request.isPaused && request.isPlaying); //inverse logic
-					$('#player_play_pause').toggleClass('paused',request.isPaused);
-					$('#player_play_pause').toggleClass('playing',request.isPlaying);
 					if (request.isMuted) {
 						$('#player_volume').addClass('mute');
 					} else {

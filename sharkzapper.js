@@ -84,7 +84,7 @@ function inject_sharkzapper() {
     chrome.extension.onRequest.addListener(recieveRequest);
 
     inject = document.createElement('script');
-    inject.id = 'sharkzapperInject'; //if($('#player_play_pause').hasClass('pause'))
+    inject.id = 'sharkzapperInject'; 
     inject.innerHTML = '        var sharkzapper_debug = false;\
                                 function sharkzapper_update_status() {\
                                 gs_status = {\
@@ -175,11 +175,10 @@ function inject_sharkzapper() {
 					        }\
                             window.addEventListener("message", sharkzapper_handle_message, false);\
 					        sharkzapper_post_message({"command":"contentScriptInit"});\
+                            GS.player.playerStatus_=GS.player.playerStatus;\
+                            GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
                             $.subscribe("gs.notification",sharkzapper_handle_notification);\
-					        $.subscribe("gs.player.nowplaying",sharkzapper_update_status);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\
-					        $.subscribe("gs.player.playing.continue",sharkzapper_update_status);\
-					        $.subscribe("gs.player.paused",sharkzapper_update_status);\
                             $.subscribe("gs.auth.song.update",sharkzapper_update_status);\
                             $.subscribe("gs.auth.favorites.songs.add",sharkzapper_update_status);\
                             $.subscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\

@@ -142,7 +142,6 @@
 			} else {
 				sendMessage({"command": "addToLibrary", "songId": songId});
 			}
-			//$('#addToLibraryBtn').toggleClass('selected');
 		});
 		$('#addToFavoritesBtn').click(function(){
 			if ($('#addToFavoritesBtn').hasClass('selected')) {
@@ -150,7 +149,6 @@
 			} else {
 				sendMessage({"command": "addToSongFavorites", "songId": songId});
 			}
-			//$('#addToFavoritesBtn').toggleClass('selected');
 		});
 		$('#radioSmileBtn').click(function(){
 			sendMessage({"command": "toggleSmile"});
@@ -243,8 +241,9 @@
 						$('#player_next').addClass('disabled');
 						$('#player_next').attr('disabled','disabled');
 					}
-					$('#player_play_pause').toggleClass('pause',!request.isPaused); //inverse logic
-					$('#player_play_pause').toggleClass('playing',!request.isPlaying);
+					$('#player_play_pause').toggleClass('pause',!request.isPaused && request.isPlaying); //inverse logic
+					$('#player_play_pause').toggleClass('paused',request.isPaused);
+					$('#player_play_pause').toggleClass('playing',request.isPlaying);
 					if (request.isMuted) {
 						$('#player_volume').addClass('mute');
 					} else {

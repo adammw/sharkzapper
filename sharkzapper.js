@@ -41,6 +41,7 @@ function inject_sharkzapper() {
 	    switch (request.command) {
 		    case 'prevSong':
 		    case 'pauseSong':
+		    case 'playSong':
 		    case 'resumeSong':
 		    case 'nextSong':
 		    case 'updateStatus':
@@ -135,6 +136,9 @@ function inject_sharkzapper() {
 								        case "prevSong":\
 									        GS.player.previousSong();\
 									        break;\
+									    case "playSong":\
+									        GS.player.playSong();\
+								            break;\
 								        case "nextSong":\
 									        GS.player.nextSong();\
 									        break;\

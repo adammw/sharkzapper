@@ -128,10 +128,12 @@
 		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
 		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
 		$('#player_play_pause').click(function(){
-			if($('#player_play_pause').hasClass('pause')) {
-				sendMessage({"command": "pauseSong"});
-			} else {
+			if($('#player_play_pause').hasClass('paused')) {
 				sendMessage({"command": "resumeSong"});
+			} else if (!$('#player_play_pause').hasClass('playing')) {
+				sendMessage({"command": "playSong"});
+			} else {
+				sendMessage({"command": "pauseSong"});
 			}
 		});
 		$('#grooveshark').click(function(){sendMessage({"command":"openGSTab"});});

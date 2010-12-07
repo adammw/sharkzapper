@@ -13,7 +13,7 @@
 	body.notPlaying {
 		min-height: 60px;
 	}
-	.hidden, body.notification #pin, body.notification #search { display: none !important; }
+	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
 	#player_controls_playback { float: none; }
@@ -292,6 +292,9 @@
                         } else {
                             $('#player_play_pause').removeClass('buffering');
                             $('#bufferinglogo').addClass('hidden');
+                        }
+                        if (status == 'PLAY_STATUS_COMPLETED') {
+                            $('body').addClass('notPlaying');
                         }
 				    }
 					if (request.nextSong) {

@@ -107,6 +107,12 @@
 				        pinnedPopup.onclose = function(){pinnedPopupOpen = false;};
 				        pinnedPopup.show();
 				    }
+			    case 'statusUpdate':
+			        if (request.currentSong) {
+    			        chrome.browserAction.setTitle({"title":request.currentSong.SongName + "\n" + request.currentSong.ArtistName});
+			        } else { 
+                        chrome.browserAction.setTitle({"title":"SharkZapper"});
+                    }
 			}
 		}
 	);

@@ -1,0 +1,12 @@
+== TODO LIST ==
+* Add keyboard shortcuts
+ => Choice: Include in main extension (will require permission to all data on all sites) or 
+            Make a separate extension which interacts with sharkzapper (which the user will have to install separately)
+* Add Popup "Docking" or "Pinning"
+ => Choice: Use Window popups for draggable window (and not have Always on Top)
+              or
+            Use HTML Notifications for static window (with Always on Top but no ability to search for a song)
+* Fix the damn "I can't read the search box" bug
+ => Problem: I *can* read the search box
+
+* Make an options page to let the user choose what they want

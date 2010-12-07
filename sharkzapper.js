@@ -175,8 +175,10 @@ function inject_sharkzapper() {
 					        }\
                             window.addEventListener("message", sharkzapper_handle_message, false);\
 					        sharkzapper_post_message({"command":"contentScriptInit"});\
-                            GS.player.playerStatus_=GS.player.playerStatus;\
-                            GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
+                            if(!GS.player.playerStatus_) {\
+                                GS.player.playerStatus_=GS.player.playerStatus;\
+                                GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
+                            }\
                             $.subscribe("gs.notification",sharkzapper_handle_notification);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\
                             $.subscribe("gs.auth.song.update",sharkzapper_update_status);\

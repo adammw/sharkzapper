@@ -7,6 +7,8 @@
 	var gsTabs = [];
 	var notifications = [];
 	var debug = false;
+	var pinnedPopup;
+	var pinnedPopupOpen = false;
 
 	// Get open Grooveshark tabs
 	function get_gs_tab(success_callback, fail_callback, arg) {
@@ -68,9 +70,9 @@
 					if (debug) console.log('Got popup init, re-checking tabs');
 					//get_gs_tab(function(sendResponse) { return function(){ console.log('Sending popup init response'); } }(sendResponse));
 					get_gs_tab(function(){
-						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0]});
+						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen});
 						chrome.tabs.sendRequest(gsTabs[0], {"command":"updateStatus"});
-					},respond_callback({"command":"popupUpdate","enabled":false}));
+					},respond_callback({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen}));
 					break;
 				case 'openGSTab':
 					open_gs_tab(request.url);
@@ -98,6 +100,13 @@
 						}
 					}}(request));
 					break;
+				case 'pinPopup':
+				    if (window.webkitNotifications) {
+				        pinnedPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_popup.html#notification');
+				        pinnedPopup.ondisplay = function(){pinnedPopupOpen = true;};
+				        pinnedPopup.onclose = function(){pinnedPopupOpen = false;};
+				        pinnedPopup.show();
+				    }
 			}
 		}
 	);

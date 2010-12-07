@@ -13,10 +13,35 @@
 	body.notPlaying {
 		min-height: 60px;
 	}
-	.hidden { display: none; }
+	.hidden, body.notification #pin, body.notification #search { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
 	#player_controls_playback { float: none; }
+	body.notification #thumbnail #player_controls_playback {
+	    opacity: 0.02;
+   	    z-index: 20000;
+   	    height: 1px;
+   	    margin-top: -1px;
+   	    overflow: hidden;
+   	    -webkit-transition-duration: 500ms;
+   	    -webkit-transition-delay: 200ms;
+	}
+	body.notification #thumbnail:hover #player_controls_playback { 
+        margin-top: -40px;
+	    opacity: 0.98;
+	    height: 40px;
+   	    -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
+   	    -webkit-transition-delay: 0;
+    }
+	#pin { 
+	    background: transparent url(pin.png); 
+	    height: 16px;
+	    width: 17px;
+        display: block;
+        position: absolute;
+        right: 115px;
+        top: 12px;
+	}
 	#thumbnail {
 		position: absolute;
 		right: 8px;
@@ -52,12 +77,23 @@
 		clear: both;
 	}
 	#searchBox {
-		background: #333 url(search_icon.png) 2px center no-repeat;
+		background: #333 url(search_icon.png) 2px center no-repeat !important;
 		color: #FFF;
 		border-radius: 4px;
 		margin-top: 4px;
 		padding: 2px 2px 2px 16px;	
 		-webkit-user-select: text;
+        -webkit-appearance: none;
+	}
+	#bufferinglogo {
+	    position: absolute;
+	    left: 8px;
+	    top: 8px;
+	    display:block;
+	    background:url(loading_header.gif) no-repeat;
+	    height: 32px;
+	    width: 32px;
+	    z-index: 200000;
 	}
 	#playerDetails_nowPlaying {
 		height: 24px;
@@ -130,8 +166,10 @@
 	}
 	
 	$(document).ready(function(){
+	    if(location.hash == '#notification') $('body').addClass('notification');
 		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
 		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
+	    $('#pin').click(function(){sendMessage({"command": "pinPopup"});});
 		$('#player_play_pause').click(function(){
 			if($('#player_play_pause').hasClass('paused')) {
 				sendMessage({"command": "resumeSong"});
@@ -186,6 +224,7 @@
 						$('body').addClass('notPlaying');
 						$('button').attr('disabled','disabled');
 					}
+					if (request.pinnedPopupOpen) $('#pin').addClass('hidden');
 					if (request.tabId) tabId = request.tabId;
 					break;
 				case 'statusUpdate':
@@ -249,8 +288,10 @@
 		                if (debug) console.log("status:",status);
                         if (status == 'PLAY_STATUS_LOADING' || status == 'PLAY_STATUS_BUFFERING') {
                             $('#player_play_pause').addClass('buffering').removeClass('pause');
+                            $('#bufferinglogo').removeClass('hidden');
                         } else {
                             $('#player_play_pause').removeClass('buffering');
+                            $('#bufferinglogo').addClass('hidden');
                         }
 				    }
 					if (request.nextSong) {
@@ -280,10 +321,12 @@
 </head>
 <body>
 	<div id="header">
-		<a id="grooveshark" href="#">
+		<a id="grooveshark">
 			<span>Grooveshark</span>
 		</a>
+		<a id="pin" title="Pin this window to bottom corner"></a>
 	</div>
+	<div id="bufferinglogo" class="hidden"></div>
 	<div id="thumbnail">
 		<img id="albumart" alt="Album Art" class="hidden" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
 		<div id="player_controls_playback">

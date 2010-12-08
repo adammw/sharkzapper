@@ -2,15 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
 <head>
 	<title>SharkZapper Background Page</title>
-	<!--<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>-->
-	<script type="text/javascript">	
+	<script type="text/javascript">
+	// Global variables
 	var gsTabs = [];
 	var notifications = [];
 	var debug = false;
 	var pinnedPopup;
 	var pinnedPopupOpen = false;
 
-	// Get open Grooveshark tabs
+	// Get all open Grooveshark tabs, then call callbacks
 	function get_gs_tab(success_callback, fail_callback, arg) {
 		chrome.windows.getAll({'populate':true}, function(win) {
 			gsTabs = [];
@@ -38,7 +38,7 @@
 		}
 	}
 
-	// Open a new grooveshark tab or show the currently open one
+	// Open a new grooveshark tab or show the currently open one if there is one
 	function open_gs_tab(url) {
 		if (gsTabs.length == 0) {
 			if (url) {
@@ -54,29 +54,40 @@
 	// Respond to requests
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
+		    // Print requests to the console in debug mode
 			if (debug) console.log("sharkzapper:","<<<",request.command,request);
+			
+			// Ignore any requests without a command
 			if (!request.command) return;
-			// Pass through cross events (but check they are comming only from the first grooveshark tab)
-			if (sender.tab && sender.tab.id == gsTabs[0]) { 
+			
+			// Pass through cross events (ie. contentscript -> popup, vise-versa)
+			if (sender.tab && sender.tab.id == gsTabs[0]) { // Check that only events from the first open tab 
 				chrome.extension.sendRequest(request); 
 				if (debug) console.log("sharkzapper:",">E>",request.command,request);
-			} else if (gsTabs.length > 0) { 
+			} else if (gsTabs.length > 0) {                 // Only send events to the first open tab (if available)
 				chrome.tabs.sendRequest(gsTabs[0], request); 
 				if (debug) console.log("sharkzapper:",">T>",request.command,request);
 			}
-			// Handle commands
+			
+			// Handle commands - note that this is not all the commands, merely ones that the background page needs to do something with
 			switch (request.command) {
+		        // This is sent each time a popup is open, we give some initialisation settings such as enabled, tabId, etc.
 				case 'popupInit':
 					if (debug) console.log('Got popup init, re-checking tabs');
-					//get_gs_tab(function(sendResponse) { return function(){ console.log('Sending popup init response'); } }(sendResponse));
 					get_gs_tab(function(){
 						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen});
 						chrome.tabs.sendRequest(gsTabs[0], {"command":"updateStatus"});
 					},respond_callback({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen}));
 					break;
+				
+				// This is sent from the popup to open the current grooveshark tab or create a new one
+				// The url is appended to the end http://listen.grooveshark.com/ ONLY IF a tab doesn't already exist
 				case 'openGSTab':
 					open_gs_tab(request.url);
 					break;
+					
+				// This is sent from a content script to check how many tabs are currently open
+				// This message is sent to ALL grooveshark tabs EXCEPT the first, so other tabs can display a warning
 				case 'getTabCount':
 					get_gs_tab(function(){
 						for (i=1;i<gsTabs.length;i++) {
@@ -85,10 +96,15 @@
 						if (debug) console.log("sharkzapper:",">ALLT>",request.command, request);
 					});
 					break;
+					
+				// This is sent from a content script to open the current grooveshark tab AND close the sender's tab
 				case 'firstTabNavigate':
 					chrome.tabs.remove(sender.tab.id);
 					open_gs_tab();
 					break;
+					
+				// This is sent from a content script whenever grooveshark sends a notification
+				// Notifications are queued into notifications array, and only display for 5000ms
 				case 'notification':
 					chrome.tabs.get(gsTabs[0], function(request){ return function(tab){
 						if (tab.selected) return; //ignore notifications if tab is open
@@ -100,6 +116,8 @@
 						}
 					}}(request));
 					break;
+					
+				// This is sent from a popup to "pin" the popup by creating a long-living HTML notification
 				case 'pinPopup':
 				    if (window.webkitNotifications) {
 				        pinnedPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_popup.html#notification');
@@ -107,6 +125,9 @@
 				        pinnedPopup.onclose = function(){pinnedPopupOpen = false;};
 				        pinnedPopup.show();
 				    }
+			    
+			    // This is sent from a content script many times a second. Most processing for this is done in the popup,
+			    // however we also set the title of the browser action to the song / artist name
 			    case 'statusUpdate':
 			        if (request.currentSong) {
     			        chrome.browserAction.setTitle({"title":request.currentSong.SongName + "\n" + request.currentSong.ArtistName});
@@ -117,6 +138,7 @@
 		}
 	);
 	
+	// simple function to make a callback that sends a request - see popupInit code
 	function respond_callback(response) {
 		return function(){chrome.extension.sendRequest(response)};
 	}

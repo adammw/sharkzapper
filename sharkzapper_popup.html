@@ -26,7 +26,8 @@
    	    -webkit-transition-duration: 500ms;
    	    -webkit-transition-delay: 500ms;
 	}
-	body.notification:not(.notPlaying) #thumbnail:hover #player_controls_playback { 
+	body.notification:not(.notPlaying) #thumbnail:hover #player_controls_playback,
+	body.notification.paused:not(.notPlaying) #thumbnail #player_controls_playback { 
         margin-top: -40px;
 	    opacity: 0.96;
 	    height: 40px;
@@ -282,8 +283,8 @@
 						$('#player_previous').attr('disabled','disabled');
 					}
 					$('#player_play_pause').toggleClass('pause',!request.isPaused && request.isPlaying); //inverse logic
-					$('#player_play_pause').toggleClass('paused',request.isPaused);
-					$('#player_play_pause').toggleClass('playing',request.isPlaying);
+					$('#player_play_pause, body').toggleClass('paused',request.isPaused);
+					$('#player_play_pause, body').toggleClass('playing',request.isPlaying);
 				    if (request.playbackStatus) {
 				        var status = statusMap[request.playbackStatus.status];
 		                if (debug) console.log("status:",status);

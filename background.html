@@ -9,6 +9,8 @@
 	var debug = false;
 	var pinnedPopup;
 	var pinnedPopupOpen = false;
+	var interactionPopup;
+	var interactionPopupOpen = false;
 
 	// Get all open Grooveshark tabs, then call callbacks
 	function get_gs_tab(success_callback, fail_callback, arg) {
@@ -119,12 +121,13 @@
 					
 				// This is sent from a popup to "pin" the popup by creating a long-living HTML notification
 				case 'pinPopup':
-				    if (window.webkitNotifications) {
+				    if (!pinnedPopupOpen && window.webkitNotifications) {
 				        pinnedPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_popup.html#notification');
 				        pinnedPopup.ondisplay = function(){pinnedPopupOpen = true;};
 				        pinnedPopup.onclose = function(){pinnedPopupOpen = false;};
 				        pinnedPopup.show();
 				    }
+				    break;
 			    
 			    // This is sent from a content script many times a second. Most processing for this is done in the popup,
 			    // however we also set the title of the browser action to the song / artist name
@@ -134,6 +137,23 @@
 			        } else { 
                         chrome.browserAction.setTitle({"title":"SharkZapper"});
                     }
+                    break;
+                    
+                // This is sent from a content script when the interactionTime popup appears
+                // We then recreate this popup as a notification to ensure the user sees it
+                case 'interactionTimePrompt':
+                    if (!interactionPopupOpen && window.webkitNotifications) {
+                        interactionPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_interactiontime.html');
+                        interactionPopup.ondisplay = function(){interactionPopupOpen = true;};
+				        interactionPopup.onclose = function(){interactionPopupOpen = false;};
+				        interactionPopup.show();
+                    }
+                    break;
+                    
+                // This is sent from the interactionTime notification when the user clicks "Resume"
+                case 'interactionTimeResume':
+                    if (interactionPopupOpen) interactionPopup.cancel();
+                    break;
 			}
 		}
 	);

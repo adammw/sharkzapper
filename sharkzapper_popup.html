@@ -161,6 +161,7 @@
 
 	function sendMessage(request) {
 		request.source = "popup";
+		request.notification = $('body').hasClass('notification');
 		if (debug) console.log("sharkzapper:",">>>",request.command,request);
 		chrome.extension.sendRequest(request);
 	}

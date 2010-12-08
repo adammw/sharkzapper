@@ -13,6 +13,7 @@ function inject_sharkzapper() {
 		    case 'statusUpdate':
 		    case 'firstTabNavigate':
             case 'notification':
+            case 'interactionTimePrompt':
 			    sendRequest(request);
                 break;
             case 'removeListener':
@@ -53,6 +54,7 @@ function inject_sharkzapper() {
 		    case 'removeFromSongFavorites':
             case 'toggleSmile':
             case 'toggleFrown':
+            case 'interactionTimeResume':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -170,6 +172,10 @@ function inject_sharkzapper() {
 								        case "performSearch":\
 									        GS.router.performSearch("all",request.query);\
 									        break;\
+								        case "interactionTimeResume":\
+    								        GS.player.resumeSong();\
+								            GS.lightbox.close();\
+								            break;\
 							        }\
 						        }\
 					        }\
@@ -178,6 +184,10 @@ function inject_sharkzapper() {
                             if(!GS.player.playerStatus_) {\
                                 GS.player.playerStatus_=GS.player.playerStatus;\
                                 GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
+                            }\
+                            if(!GS.lightbox.open_) {\
+                                GS.lightbox.open_=GS.lightbox.open;\
+                                GS.lightbox.open=function(a,b){GS.lightbox.open_(a,b);if(a=="interactionTime"){sharkzapper_post_message({"command":"interactionTimePrompt"})}};\
                             }\
                             $.subscribe("gs.notification",sharkzapper_handle_notification);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\

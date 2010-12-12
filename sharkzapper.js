@@ -97,10 +97,6 @@ function inject_sharkzapper() {
 					                "isPaused": GS.player.isPaused,\
 					                "isMuted": GS.player.getIsMuted()\
 				                };\
-				                if (gs_status.currentSong) {\
-					                gs_status.currentSong.fromLibrary = GS.user.library.songs.hasOwnProperty(gs_status.currentSong.SongID);\
-					                gs_status.currentSong.isFavorite = GS.user.favorites.songs.hasOwnProperty(gs_status.currentSong.SongID);\
-				                }\
                                 if (GS.player.queue) {\
 					                gs_status.prevSong = GS.player.queue.previousSong;\
 					                gs_status.nextSong = GS.player.queue.nextSong;\

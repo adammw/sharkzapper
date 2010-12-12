@@ -49,7 +49,18 @@
 				chrome.tabs.create({url:'http://listen.grooveshark.com/'});
 			}
 		} else {
-			chrome.tabs.update(gsTabs[0], {'selected':true});
+		    if (url) {
+		        // Ensure that we only update url if it is different
+		        chrome.tabs.get(gsTabs[0], function(url){ return function(tab) {
+		            if (tab.url == 'http://listen.grooveshark.com/' + url) {
+		                chrome.tabs.update(gsTabs[0], {'selected':true});
+	                } else {
+	                    chrome.tabs.update(gsTabs[0], {'url':'http://listen.grooveshark.com/' + url, 'selected':true});
+                    }
+		        }}(url));
+			} else {
+			    chrome.tabs.update(gsTabs[0], {'selected':true});
+			}
 		}
 	}
 
@@ -83,7 +94,7 @@
 					break;
 				
 				// This is sent from the popup to open the current grooveshark tab or create a new one
-				// The url is appended to the end http://listen.grooveshark.com/ ONLY IF a tab doesn't already exist
+				// The url is appended to the end http://listen.grooveshark.com/
 				case 'openGSTab':
 					open_gs_tab(request.url);
 					break;

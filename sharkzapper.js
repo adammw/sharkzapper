@@ -97,6 +97,11 @@ function inject_sharkzapper() {
 					                "isPaused": GS.player.isPaused,\
 					                "isMuted": GS.player.getIsMuted()\
 				                };\
+				                if (GS.player.currentSong) {\
+					                gs_status.urls = {"song": GS.player.currentSong.toUrl()};\
+				                    gs_status.urls.artist = _.cleanUrl(gs_status.currentSong.ArtistName, gs_status.currentSong.ArtistID, "artist");\
+			                        gs_status.urls.album = _.cleanUrl(gs_status.currentSong.AlbumName, gs_status.currentSong.AlbumID, "album");\
+				                }\
                                 if (GS.player.queue) {\
 					                gs_status.prevSong = GS.player.queue.previousSong;\
 					                gs_status.nextSong = GS.player.queue.nextSong;\

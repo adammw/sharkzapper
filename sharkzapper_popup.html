@@ -13,10 +13,16 @@
 	body.notPlaying {
 		min-height: 60px;
 	}
+	a, a:hover {
+	    color: white !important;
+    }
 	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
 	#player_controls_playback { float: none; }
+	body.notification:not(.notPlaying) #albumart {
+	    height: 100px;
+	}
 	body.notification:not(.notPlaying) #thumbnail #player_controls_playback {
 	    opacity: 0.02;
    	    z-index: 20000;
@@ -221,6 +227,11 @@
 			sendMessage({"command":"performSearch", "query": $('#searchBox').val()});
 		    	$('#searchBox').val(''); $('#searchBox').blur(); return false; 
 		});
+		$('#songDetails a').click(function(e){
+			sendMessage({"command":"openGSTab", "url": $(this).attr('href')});
+		    e.preventDefault();
+		    return false;
+		});
 	});
 	
 	chrome.extension.onRequest.addListener(
@@ -247,6 +258,13 @@
 						$('#songName').text(request.currentSong.SongName);
 						$('#albumName').text(request.currentSong.AlbumName);
 						$('#artistName').text(request.currentSong.ArtistName);
+						if (request.urls) {
+						    $('#songName').attr('href', request.urls.song);
+						    $('#albumName').attr('href', request.urls.album);
+						    $('#artistName').attr('href', request.urls.artist);
+						} else {
+    						$('#songName, #albumName, #artistName').removeAttr('href');
+						}
 						$('#albumart').attr('alt', request.currentSong.AlbumName);
 						$('#player_elapsed').text(Math.floor(request.playbackStatus.position / 1000 / 60) + ":" + ((request.playbackStatus.position / 1000) % 60).toFixed().pad(2, "0"));
 						$('#player_duration').text(Math.floor(request.playbackStatus.duration / 1000 / 60) + ":" + ((request.playbackStatus.duration / 1000) % 60).toFixed().pad(2, "0"));
@@ -355,9 +373,9 @@
 		</div>
 	</div>
 	<div id="songDetails" class="hidden">
-		<div class="scrollable"><span id="songName"></span></div>
-		<div class="scrollable"><span id="albumName"></span></div>
-		<div class="scrollable"><span id="artistName"></span></div>
+		<div class="scrollable"><a id="songName"></a></div>
+		<div class="scrollable"><a id="albumName"></a></div>
+		<div class="scrollable"><a id="artistName"></a></div>
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
 	</div>
 	<div id="lowerControls">

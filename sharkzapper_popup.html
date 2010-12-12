@@ -34,6 +34,16 @@
    	    -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
    	    -webkit-transition-delay: 0;
     }
+    body #songDetails div.scrollable {
+        text-wrap: none;
+        white-space: nowrap;
+        height: 1.1em;
+        text-overflow: ellipsis;
+    }
+    body.notification #songDetails div.scrollable {
+        overflow: hidden;
+        width: 180px;
+    }
 	#pin { 
 	    background: transparent url(pin.png); 
 	    height: 16px;
@@ -153,6 +163,7 @@
 	var songId = null;
 	var tabId = null;
 	var debug = false;
+	var scrollTimeouts = [];
 
 	String.prototype.pad = function(l, s){
     return (l -= this.length) > 0 
@@ -166,9 +177,11 @@
 		if (debug) console.log("sharkzapper:",">>>",request.command,request);
 		chrome.extension.sendRequest(request);
 	}
-	
+
 	$(document).ready(function(){
-	    if(location.hash == '#notification') $('body').addClass('notification');
+	    if(location.hash == '#notification') {
+	        $('body').addClass('notification');
+    	}
 		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
 		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
 	    $('#pin').click(function(){sendMessage({"command": "pinPopup"});});
@@ -231,7 +244,6 @@
 					break;
 				case 'statusUpdate':
 					if (request.currentSong) {
-						songId = request.currentSong.SongID;
 						$('#songName').text(request.currentSong.SongName);
 						$('#albumName').text(request.currentSong.AlbumName);
 						$('#artistName').text(request.currentSong.ArtistName);
@@ -260,6 +272,8 @@
 						$('#player_volume').removeClass('hidden');
 						$('#playerDetails_nowPlaying').removeClass('hidden');
 						$('body').removeClass('notPlaying');
+						
+						songId = request.currentSong.SongID;
 					} else { 
 						songId = null;
 						$('#songName').text('');
@@ -341,9 +355,9 @@
 		</div>
 	</div>
 	<div id="songDetails" class="hidden">
-		<div><span id="songName"></span></div>
-		<div><span id="albumName"></span></div>
-		<div><span id="artistName"></span></div>
+		<div class="scrollable"><span id="songName"></span></div>
+		<div class="scrollable"><span id="albumName"></span></div>
+		<div class="scrollable"><span id="artistName"></span></div>
 		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
 	</div>
 	<div id="lowerControls">

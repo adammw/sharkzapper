@@ -7,7 +7,7 @@
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
 var recieveMessage, sendRequest, inject, tabnavListener;
-var debug = true;
+var debug = false;
 var thisVersion = '1.2.7';
 function inject_sharkzapper() {
     if(debug) console.log("injecting sharkzapper version "+thisVersion);

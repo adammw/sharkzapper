@@ -272,6 +272,13 @@
 		    e.preventDefault();
 		    return false;
 		});
+		
+		getSetting("showMuteButton",function(showMuteButton) {
+            $('body:not(.notPlaying) #player_volume').toggleClass('hidden',!showMuteButton);
+        });
+		getSetting("showSearchBox",function(showSearchBox) {
+            $('#search').toggleClass('hidden',!showSearchBox);
+        });
 	});
 	
 	chrome.extension.onRequest.addListener(
@@ -406,6 +413,10 @@
 						$('#radioFrownBtn').toggleClass('selected',request.isFrown);	
 					}
 					break;
+				case 'settingsUpdate':
+				    if (!request.settings) return;		        
+			        $('#search').toggleClass('hidden',!request.settings.showSearchBox);
+			        break;
 			}		
 		}
 	);	

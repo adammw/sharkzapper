@@ -315,6 +315,7 @@ function inject_sharkzapper() {
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showMuteButton = $("#settings_sharkzapper_showMuteButton").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showQueuePosition = $("#settings_sharkzapper_showQueuePosition").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showNotificationOnSongChange = $("#settings_sharkzapper_showNotificationOnSongChange").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showSearchBox = $("#settings_sharkzapper_showSearchBox").is(":checked");\
                                         sharkzapper_post_message({"command":"settingsUpdate","settings":GS.Controllers.Page.SettingsController.instance().sharkzapperSettings});\
                                         $("#settings_sharkzapper .buttons .status").addClass("success");\
                                     });\

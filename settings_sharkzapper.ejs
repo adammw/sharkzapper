@@ -15,6 +15,12 @@
                 <label class="value label" for="settings_sharkzapper_showMuteButton">Show Volume Mute button</label>
                 <div class="clear"></div>
             </li>
+            <li>
+                <input id="settings_sharkzapper_showSearchBox" type="checkbox" tabindex="" name="settings_sharkzapper_showSearchBox"
+                <% if (sharkzapperSettings.showSearchBox) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showSearchBox">Show Search Box (not available in pinned version)</label>
+                <div class="clear"></div>
+            </li>
         </ul>
     </fieldset>
     <br />

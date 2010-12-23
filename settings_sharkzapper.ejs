@@ -1,0 +1,46 @@
+<form id="settings_sharkzapper" class="vertical" method="post" action="">
+    <h3>sharkZapper Settings</h3>
+    <fieldset>
+        <legend>Appearance</legend>
+        <ul class="checkbox_wrapper">
+            <li>
+                <input id="settings_sharkzapper_showQueuePosition" type="checkbox" tabindex="" name="settings_sharkzapper_showQueuePosition"
+                <% if (sharkzapperSettings.showQueuePosition) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showQueuePosition">Show Queue Position on top of Album Art.</label>
+                <div class="clear"></div>
+            </li>
+            <li>
+                <input id="settings_sharkzapper_showMuteButton" type="checkbox" tabindex="" name="settings_sharkzapper_showMuteButton"
+                <% if (sharkzapperSettings.showMuteButton) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showMuteButton">Show Volume Mute button</label>
+                <div class="clear"></div>
+            </li>
+        </ul>
+    </fieldset>
+    <br />
+    <fieldset>
+        <legend>Behaviour</legend>
+        <ul class="checkbox_wrapper">
+            <li>
+                <input id="settings_sharkzapper_newTabOnPopupClick" type="checkbox" tabindex="" name="settings_sharkzapper_newTabOnPopupClick"
+                <% if (sharkzapperSettings.newTabOnPopupClick) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_newTabOnPopupClick">Automatically open Grooveshark when clicking SharkZapper button</label>
+                <div class="clear"></div>
+            </li>
+            <li>
+                <input id="settings_sharkzapper_showNotificationOnSongChange" type="checkbox" tabindex="" name="settings_sharkzapper_showNotificationOnSongChange"
+                <% if (sharkzapperSettings.showNotificationOnSongChange) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showNotificationOnSongChange">Show notification on Song Change</label>
+                <div class="clear"></div>
+            </li>
+        </ul>
+    </fieldset>
+    <div class="buttons left">
+        <button class="btn_style4 saveChanges" type="submit" tabindex="" name="">
+            <div>
+                <span data-translate-text="SAVE_CHANGES"><%= $.localize.getString('SAVE_CHANGES') %></span>
+            </div>
+        </button>
+        <div class="status"></div>
+    </div>
+</form>

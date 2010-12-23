@@ -8,7 +8,7 @@
  */
 var recieveMessage, sendRequest, inject, tabnavListener;
 var debug = false;
-var thisVersion = '1.2.7';
+var thisVersion = '1.3.0';
 function inject_sharkzapper() {
     if(debug) console.log("injecting sharkzapper version "+thisVersion);
     sendRequest({"command": "getTabCount"});
@@ -18,15 +18,19 @@ function inject_sharkzapper() {
 	    var request = JSON.parse(e.data);
         if (debug) console.log('sharkzapper:', '<(M)C<', request);
 	    switch (request.command) {
-		    //case 'contentScriptInit':
+		    case 'contentScriptInit':
 		    case 'statusUpdate':
+            case 'settingsUpdate':
 		    case 'firstTabNavigate':
             case 'notification':
             case 'interactionTimePrompt':
+            case 'fetchView':
+            case 'fetchSettings':
 			    sendRequest(request);
                 break;
             case 'removeListener':
                 window.removeEventListener("message",receiveMessage,false);
+                window.removeEventListener("close",handleClose,false);
                 chrome.extension.onRequest.removeListener(recieveRequest);
                 receiveMessage = function(e){ console.error('got messages from dead function',e); };
                 receiveRequest = function(e){ console.error('got requests from dead function',e); };
@@ -48,6 +52,7 @@ function inject_sharkzapper() {
 
     function recieveRequest(request, sender, sendResponse) {
         if (debug) console.log('sharkzapper:', '<(R)C<', request, sender);
+        //if (request.source != "page") return;
 	    switch (request.command) {
 		    case 'prevSong':
 		    case 'pauseSong':
@@ -64,6 +69,8 @@ function inject_sharkzapper() {
             case 'toggleSmile':
             case 'toggleFrown':
             case 'interactionTimeResume':
+            case 'settingsUpdate':
+            case 'viewUpdate':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -89,16 +96,20 @@ function inject_sharkzapper() {
         chrome.extension.sendRequest(request);
     }
 
+    function handleClose() {
+        sendRequest({"command":"gsTabClosing"});
+    }
 
-    window.addEventListener("message", receiveMessage, false);  
+    window.addEventListener("message", receiveMessage, false);
+    window.addEventListener("unload", handleClose, false);    
 
     chrome.extension.onRequest.addListener(recieveRequest);
 
     inject = document.createElement('script');
     inject.id = 'sharkzapperInject'; 
     inject.className = 'version_'+thisVersion;
-    inject.innerHTML = '        var sharkzapper_debug = false;\
-                                function sharkzapper_update_status() {\
+    inject.innerHTML = '    var sharkzapper_debug = false;\
+                            function sharkzapper_update_status() {\
                                 gs_status = {\
 					                "command": "statusUpdate",\
 					                "playbackStatus": GS.player.getPlaybackStatus(),\
@@ -115,6 +126,7 @@ function inject_sharkzapper() {
                                 if (GS.player.queue) {\
 					                gs_status.prevSong = GS.player.queue.previousSong;\
 					                gs_status.nextSong = GS.player.queue.nextSong;\
+					                gs_status.queueLength = GS.player.queue.songs.length;\
                                 }\
                                 if ($("#queue_list li.queue-item-active div.radio_options").hasClass("active")) {\
                                     gs_status.isRadio = true;\
@@ -133,6 +145,13 @@ function inject_sharkzapper() {
                             function sharkzapper_handle_notification(n) {\
                                 n.command="notification";\
                                 sharkzapper_post_message(n);\
+                            }\
+                            function sharkzapper_settings_callback(r) {\
+                                if (!GS.Controllers.Page.SettingsController.instance().sharkzapperSettings) {\
+                                    sharkzapper_post_message({"command":"fetchfetchSettingsSettings", "callback":"sharkzapper_settings_callback"});\
+                                } else {\
+                                    GS.Controllers.Page.SettingsController.instance().showSharkzapper();\
+                                }\
                             }\
 					        function sharkzapper_handle_message(e) {\
 						        if (e.origin == "http://listen.grooveshark.com") {\
@@ -187,19 +206,26 @@ function inject_sharkzapper() {
     								        GS.player.resumeSong();\
 								            GS.lightbox.close();\
 								            break;\
+							            case "viewUpdate":\
+							                $.View.preCached["_gs_views_" + request.viewName + "_ejs"] = request.view;\
+							                if (request.callback && typeof this[request.callback] == "function") this[request.callback].call(this,request);\
+							                break;\
+						                case "settingsUpdate":\
+						                    GS.Controllers.Page.SettingsController.instance().sharkzapperSettings = request.settings;\
+							                if (request.callback && typeof this[request.callback] == "function") this[request.callback].call(this,request);\
+						                    break;\
 							        }\
 						        }\
 					        }\
                             window.addEventListener("message", sharkzapper_handle_message, false);\
-					        sharkzapper_post_message({"command":"contentScriptInit"});\
                             if(!GS.player.playerStatus_) {\
                                 GS.player.playerStatus_=GS.player.playerStatus;\
-                                GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
                             }\
+                            GS.player.playerStatus=function(b){GS.player.playerStatus_(b);sharkzapper_update_status();};\
                             if(!GS.lightbox.open_) {\
                                 GS.lightbox.open_=GS.lightbox.open;\
-                                GS.lightbox.open=function(a,b){GS.lightbox.open_(a,b);if(a=="interactionTime"){sharkzapper_post_message({"command":"interactionTimePrompt"})}};\
                             }\
+                            GS.lightbox.open=function(a,b){GS.lightbox.open_(a,b);if(a=="interactionTime"){sharkzapper_post_message({"command":"interactionTimePrompt"})}};\
                             $.subscribe("gs.notification",sharkzapper_handle_notification);\
 					        $.subscribe("gs.player.queue.change",sharkzapper_update_status);\
                             $.subscribe("gs.auth.song.update",sharkzapper_update_status);\
@@ -208,7 +234,98 @@ function inject_sharkzapper() {
                             $.subscribe("gs.auth.library.add",sharkzapper_update_status);\
                             $.subscribe("gs.auth.library.remove",sharkzapper_update_status);\
                             \
-                            $(".queueSong .smile, .queueSong .frown").click(sharkzapper_update_status);';
+                            $(".queueSong .smile, .queueSong .frown").click(sharkzapper_update_status);\
+                            \
+                            if (!GS.Controllers.Page.SettingsController.instance().index_) { GS.Controllers.Page.SettingsController.instance().index_ = GS.Controllers.Page.SettingsController.instance().index; }\
+                            if (!GS.Controllers.Page.SettingsController.instance().loadSettings_) { GS.Controllers.Page.SettingsController.instance().loadSettings_ = GS.Controllers.Page.SettingsController.instance().loadSettings; }\
+                            GS.Controllers.Page.SettingsController.instance().index = function(a) {\
+                                if ($("#page").is(".gs_page_settings")) {\
+                                    this.pageType = a || "profile";\
+                                    console.log("gs.page.settings", GS.user);\
+                                    if (!GS.user.isLoggedIn) if (this.pageType !== "preferences" && this.pageType !== "subscriptions" && this.pageType !== "sharkzapper") this.pageType = "preferences";\
+                                    GS.user.settings.getUserSettings(this.callback("loadSettings"), GS.router.notFound);\
+                                    this.subscribe("gs.auth.update", this.callback("index"));\
+                                    this.subscribe("gs.auth.favorites.users.update", this.callback("updateActivityUsersForm"));\
+                                    this.subscribe("gs.facebook.profile.update", this.callback("updateFacebookForm"));\
+                                    this.subscribe("gs.lastfm.profile.update", this.callback("updateLastfmForm"));\
+                                    this.subscribe("gs.google.profile.update", this.callback("updateGoogleForm"));\
+                                    this.subscribe("gs.settings.upload.onload", this.callback("iframeOnload"));\
+                                }\
+                            };\
+                            GS.Controllers.Page.SettingsController.instance().loadSettings = function () {\
+                                if ($("#page").is(".gs_page_settings")) {\
+                                    this.user = GS.user;\
+                                    this.settings = GS.user.settings;\
+                                    this.element.html(this.view("index"));\
+                                    var panes = this.element.find("#page_nav_vertical #settings_sections");\
+                                    if(!panes.children("li.pane_sharkzapper").length) {\
+                                        panes.append(\'<li class="pane pane_sharkzapper"><a href="#/settings/sharkzapper"><span class="icon" style="background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oMFwQbH1R4eX0AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD0klEQVQ4y12Ma0xbZRiA3+/raSstlN7g2CMUjkw3wyUkmzNGUG6Zi4kLUVzikvnHaNwPxJgxw7YfExRMiEYzjcmSZUFINLqAYzNmXEK7hEi5lQK6gfQCraO0PaelLaftTr/z+WuJ8fn9PA+ilML/UC/Ozx+z2WxX8vl8myzLkM1kprx+f+/LjY1LxSZTHmP82EXoPwPk83rrY7FYTyAQeN0fCEQT8biAEAKDwWBhWdZmNBjGKFUG33jrtPtkW/WR7k8GvMzj+u+NjfZlt/vH5eXlv9xud9fU9PTd6tpa4ZmqKiaeSNitZnNLJc+/V2otcXz+WXdPal8s8Xk3v0SUUlhbXa1dWFhwORyOW8MjIx85Z2a+D4VCCzaOu9Hc0hIGAC0AkM7OztqDtDT4dOlua1UZfvXtzjuzeDsQ0KytrV1aXFxc83g8Fyiley6X65XAzk7fPadz8vq1ay8BAKaUFn519arvqGnuZyUpwoSbPbu+vv4E/nV09LB3a6tjZWXlhmd1NQgAkE6n8zzPq8wWS83c/Pyty5cuPo8QUt/84p3ntKL/ikTtc3lZPnN7fPwQlvP5T7e83pB/e3saAGB8bMxCAayiKIK19ElaZ0MWYXPGefliDx+V/hgqrWFnsa3tW7WayblcrvP44e7uqb29PUEBCAIAxATh7IEkYUmSqH/rPmo4rqa9fdVgZqfGT5+zW35Z6ek7XlcS0mo00VQq9Rr+JxTCuVyuoLWpqczjdp/YCQbPp5JJEMUEwvkQVNUzqISX6MddRravl0SHR973FxcXazVarSqbzWKV0Wh8IZvLvchxXPvG5uYZr8/H6vWFFIOETjYQcDgfQpU+jabvIph2mYoWXLMNusLC5o0HD2oi0eiEymKx3Jdl+V1FUUyiKBYwDAOZTAaZtTE4ZH0EP/yuhfpjMbh+00qLjEZGEMXKcDhcEY/HSXl5+Qe4sqLiz/1EYkwUBMhkMlQQBJCScWh/9gC+/kkCxBA4140hJSkoLopACAGMMUiSdKerq2sDUUqx3W4/SgiZsFqtRlnG9MMOM9rZxTC1ngWdVgUMw4Asy4AQok9xHMpks/tFRUVvDg0NuTEAwOjo6AohpDMcjiaO8DkUjKdheDIIqUSURiIRGolEACEELMsiKZNJJpPJC/39/R4AIIgQgjHGyOvbYVqamxoP2+XvgjE9r9Pp1QzDgEajAZ1OBwzDkFQqNclx3DcDAwOLPM8/opQqQCnFiqKoKKXMvd9uGwb7+6x1dXWnWJZ1chwnl5WVyXa73dHa2tqxtLTEEkJMlFKDoih6SmnBv/eM+oTo5p/0AAAAAElFTkSuQmCC) no-repeat;"></span><span class="text">sharkZapper</span><span class="arrow"></span></a></li>\');\
+                                    }\
+                                    switch (this.pageType) {\
+                                        case "profile":\
+                                            GS.Controllers.PageController.title("Settings");\
+                                            this.showProfile();\
+                                            break;\
+                                        case "password":\
+                                            GS.Controllers.PageController.title("Change Password");\
+                                            this.showPassword();\
+                                            break;\
+                                        case "preferences":\
+                                            GS.Controllers.PageController.title("Preferences");\
+                                            this.showPreferences();\
+                                            break;\
+                                        case "services":\
+                                            GS.Controllers.PageController.title("Services Settings");\
+                                            this.showServices();\
+                                            break;\
+                                        case "activity":\
+                                            GS.Controllers.PageController.title("Activity Settings");\
+                                            this.showActivity();\
+                                            break;\
+                                        case "subscriptions":\
+                                            GS.Controllers.PageController.title("Subscriptions Settings");\
+                                            GS.service.getSubscriptionDetails(this.callback("showSubscriptions"), this.callback("showSubscriptions"));\
+                                            break;\
+                                        case "extras":\
+                                            GS.Controllers.PageController.title("Extras");\
+                                            this.showExtras();\
+                                            break;\
+                                        case "sharkzapper":\
+                                            GS.Controllers.PageController.title("sharkZapper Settings");\
+                                            this.showSharkzapper();\
+                                            break;\
+                                    }\
+                                }\
+                            };\
+                            GS.Controllers.Page.SettingsController.instance().showSharkzapper = function() {\
+                                if ($.View.preCached._gs_views_settings_sharkzapper_ejs) {\
+                                    this.element.find("#page_pane").html(this.view("sharkzapper"));\
+                                    $("#settings_sharkzapper").submit(function(e){\
+                                        e.preventDefault();\
+                                        if (!GS.Controllers.Page.SettingsController.instance().sharkzapperSettings) {\
+                                            console.error("no sharkzapper settings! what?");\
+                                            $("#settings_sharkzapper .buttons .status").addClass("failure");\
+                                            $.publish("gs.notification", {\
+                                                type: "error",\
+                                                message: $.localize.getString("POPUP_UNABLE_SAVE_SETTINGS")\
+                                            });\
+                                            return;\
+                                        }\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.newTabOnPopupClick = $("#settings_sharkzapper_newTabOnPopupClick").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showMuteButton = $("#settings_sharkzapper_showMuteButton").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showQueuePosition = $("#settings_sharkzapper_showQueuePosition").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showNotificationOnSongChange = $("#settings_sharkzapper_showNotificationOnSongChange").is(":checked");\
+                                        sharkzapper_post_message({"command":"settingsUpdate","settings":GS.Controllers.Page.SettingsController.instance().sharkzapperSettings});\
+                                        $("#settings_sharkzapper .buttons .status").addClass("success");\
+                                    });\
+                                } else {\
+                                    sharkzapper_post_message({"command":"fetchView","viewName":"settings_sharkzapper","callback":"sharkzapper_settings_callback"});\
+                                }\
+                                this.element.find("#page_nav_vertical #settings_sections li.pane_sharkzapper a").addClass("active");\
+                                $(window).resize();\
+                            };\
+                            if (location.hash == "#/settings/sharkzapper") GS.Controllers.Page.SettingsController.instance().index("sharkzapper");\
+               				sharkzapper_post_message({"command":"contentScriptInit"});';
     document.body.appendChild(inject);
 }
 function clean_up(injectNew) {
@@ -218,8 +335,10 @@ function clean_up(injectNew) {
     	
 	// clean up old injection
     document.body.removeChild(document.getElementById('sharkzapperInject'));
+    if (document.getElementById('sharkzapperInject')) { console.error('could not clean up! dying...'); return;}
     cleanup = document.createElement('script');
     cleanup.id = 'sharkzapperCleanUp'; 
+    cleanup.className = 'version_'+thisVersion;
     js = 'window.removeEventListener("message",sharkzapper_handle_message,false);';
     if (injectNew) {
         js += 'sharkzapper_post_message({"command":"removeListener","injectNew":true});';
@@ -236,6 +355,11 @@ function clean_up(injectNew) {
                         $.unsubscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\
                         $.unsubscribe("gs.auth.library.add",sharkzapper_update_status);\
                         $.unsubscribe("gs.auth.library.remove",sharkzapper_update_status);\
+                        delete $.View.preCached._gs_views_settings_sharkzapper_ejs;\
+                        if (GS.player.playerStatus_) { GS.player.playerStatus = GS.player.playerStatus_; }\
+                        if (GS.lightbox.open_) { GS.lightbox.open = GS.lightbox.open_; }\
+                        if (GS.Controllers.Page.SettingsController.instance().index_) { GS.Controllers.Page.SettingsController.instance().index = GS.Controllers.Page.SettingsController.instance().index_; }\
+                        if (GS.Controllers.Page.SettingsController.instance().loadSettings_) { GS.Controllers.Page.SettingsController.instance().loadSettings = GS.Controllers.Page.SettingsController.instance().loadSettings_; }\
                         document.body.removeChild(document.getElementById("sharkzapperCleanUp"));\
                         if (sharkzapper_debug) console.log("cleanup stage1 done!");';
     cleanup.innerHTML=js;
@@ -268,5 +392,5 @@ if (inject && (debug || inject.className != 'version_'+thisVersion)) {
         clean_up(true);
     }
 } else {
-    inject_sharkzapper();
+    if (!inject) inject_sharkzapper();
 }

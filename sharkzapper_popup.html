@@ -171,6 +171,31 @@
 	#player_times { 
 		width: auto;
 	}
+	
+	#queue_position {
+	    position: absolute;
+        right: 0px;
+	    background-color: rgba(25, 25, 25, 0.65);
+        border-bottom-left-radius: 6px;
+        font-size: 10px;
+        padding: 2px 2px 4px 4px;
+        text-shadow: black 0px 0px 3px;
+	}
+	#queue_position #queue_current_position {
+	    color: #FFF;queue_position
+        display: block;
+        float: left;
+        height: 14px;
+        font-size: 12px;
+        line-height: 12px;
+    }
+	#queue_position #queue_total, #queue_position #queue_position_separator {
+	    color: #AAA;
+        display: block;
+        float: left;
+        height: 14px;
+        line-height: 14px;
+    }
 	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
 	<script type="text/javascript">
@@ -186,6 +211,11 @@
         ? (s = new Array(Math.ceil(l / s.length) + 1).join(s)).substr(0, s.length) + this + s.substr(0, l - s.length) 
         : this;
 	};
+	
+	function getSetting(settingName,callback) {
+		if (debug) console.log("sharkzapper:",">>>","getSetting",settingName);
+		chrome.extension.sendRequest({"command":"getSetting","source":"popup","settingName":settingName},callback);
+	}
 
 	function sendMessage(request) {
 		request.source = "popup";
@@ -251,6 +281,7 @@
 			if (tabId && sender.tab && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {
 				case 'popupUpdate':
+				    if (request.closeImmediately) window.close();
 					if (request.enabled) {
 						$('button').removeAttr('disabled');
 						$('button').removeClass('disabled');
@@ -259,6 +290,7 @@
 						$('button').addClass('disabled');
 						$('body').addClass('notPlaying');
 						$('button').attr('disabled','disabled');
+						$('#player_play_pause').removeClass('pause');
 					}
 					if (request.pinnedPopupOpen) $('#pin').addClass('hidden');
 					if (request.tabId) tabId = request.tabId;
@@ -297,7 +329,9 @@
 						$('#player_play_pause').removeClass('disabled');
 						$('#albumart').removeClass('hidden');
 						$('#songDetails').removeClass('hidden');
-						$('#player_volume').removeClass('hidden');
+					    getSetting("showMuteButton",function(showMuteButton) {
+                            $('#player_volume').toggleClass('hidden',!showMuteButton);
+                        });
 						$('#playerDetails_nowPlaying').removeClass('hidden');
 						$('body').removeClass('notPlaying');
 						
@@ -327,6 +361,15 @@
 					$('#player_play_pause').toggleClass('pause',!request.isPaused && request.isPlaying); //inverse logic
 					$('#player_play_pause, body').toggleClass('paused',request.isPaused);
 					$('#player_play_pause, body').toggleClass('playing',request.isPlaying);
+
+                    if (!(request.playbackStatus && request.playbackStatus.activeSong && request.playbackStatus.activeSong.queueSongID && request.queueLength)) {
+                        $('#queue_position').addClass('hidden');
+                    } else {
+                        getSetting("showQueuePosition",function(showQueuePosition) {
+                            console.log(showQueuePosition);
+                            $('#queue_position').toggleClass('hidden',!showQueuePosition);
+                        });
+                    }
 				    if (request.playbackStatus) {
 				        var status = statusMap[request.playbackStatus.status];
 		                if (debug) console.log("status:",status);
@@ -337,9 +380,13 @@
                             $('#player_play_pause').removeClass('buffering');
                             $('#bufferinglogo').addClass('hidden');
                         }
-                        if (status == 'PLAY_STATUS_COMPLETED') {
+                        if (status == 'PLAY_STATUS_COMPLETED' && request.playbackStatus.activeSong && request.playbackStatus.activeSong.queueSongID  && request.queueLength && request.playbackStatus.activeSong.queueSongID == request.queueLength) {
                             $('body').addClass('notPlaying');
                         }
+                        if (request.playbackStatus.activeSong && request.playbackStatus.activeSong.queueSongID  && request.queueLength) {
+    						$('#queue_current_position').text(request.playbackStatus.activeSong.queueSongID);
+    						$('#queue_total').text(request.queueLength);
+						} 
 				    }
 					if (request.nextSong) {
 						$('#player_next').removeClass('disabled');						
@@ -375,6 +422,11 @@
 	</div>
 	<div id="bufferinglogo" class="hidden"></div>
 	<div id="thumbnail">
+	    <div id="queue_position" class="hidden">
+	        <span id="queue_current_position"></span>
+	        <span id="queue_position_separator">/</span>
+	        <span id="queue_total"></span>
+	    </div>
 		<img id="albumart" alt="Album Art" class="hidden" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
 		<div id="player_controls_playback">
 			<button id="player_previous" disabled="disabled" class="player_control" title="Previous"></button>

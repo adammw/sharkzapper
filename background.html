@@ -14,13 +14,47 @@
 	<title>SharkZapper Background Page</title>
 	<script type="text/javascript">
 	// Global variables
+	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var gsTabs = [];
 	var notifications = [];
+	var songNotifications = [];
 	var debug = false;
 	var pinnedPopup;
 	var pinnedPopupOpen = false;
 	var interactionPopup;
 	var interactionPopupOpen = false;
+	var lastSong = {};
+	var settingsVersion = 3;
+	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showNotificationOnSongChange": false}; 
+	
+	// Create settings with defaults
+	if (!localStorage.settings || localStorage.settingsVersion < settingsVersion) {
+	    if (!localStorage.settings) {
+    	    localStorage.settings = JSON.stringify(defaultSettings);
+    	    localStorage.settingsVersion = settingsVersion;
+	    } else {
+	        //do upgrade!
+	        updatedSettings = JSON.parse(localStorage.settings);
+	        for (key in defaultSettings) {
+	            if (!updatedSettings[key]) updatedSettings[key] = defaultSettings[key];
+	        }
+	        // add specific setting changeovers here
+	        
+	        // store changes
+	        localStorage.settings = JSON.stringify(updatedSettings);
+	        localStorage.settingsVersion = settingsVersion;
+	    }
+	}
+	
+	function getSetting(settingName) {
+	    try {
+    	    if (debug) console.log('setting response',settingName,JSON.parse(localStorage.settings)[settingName]);
+    	    return JSON.parse(localStorage.settings)[settingName];
+	    } catch(e) {
+    	    if (debug) console.log('setting response using default',settingName,JSON.parse(localStorage.settings)[settingName]);
+	        return defaultSettings[settingName];
+	    }
+	}
 
 	// Get all open Grooveshark tabs, then call callbacks
 	function get_gs_tab(success_callback, fail_callback, arg) {
@@ -62,11 +96,13 @@
 		    if (url) {
 		        // Ensure that we only update url if it is different
 		        chrome.tabs.get(gsTabs[0], function(url){ return function(tab) {
-		            if (tab.url == 'http://listen.grooveshark.com/' + url) {
+		            if (tab && tab.url == 'http://listen.grooveshark.com/' + url) {
 		                chrome.tabs.update(gsTabs[0], {'selected':true});
-	                } else {
+	                } else if (tab && tab.url != 'http://listen.grooveshark.com/' + url) {
 	                    chrome.tabs.update(gsTabs[0], {'url':'http://listen.grooveshark.com/' + url, 'selected':true});
-                    }
+                    } else {
+        				chrome.tabs.create({url:'http://listen.grooveshark.com/' + url});
+    				}
 		        }}(url));
 			} else {
 			    chrome.tabs.update(gsTabs[0], {'selected':true});
@@ -80,16 +116,14 @@
 		    // Print requests to the console in debug mode
 			if (debug) console.log("sharkzapper:","<<<",request.command,request);
 			
-			// Ignore any requests without a command
-			if (!request.command) return;
+			// Ignore any requests without a command or from ourself
+			if (!request.command || request.source == "background") return;
 			
 			// Pass through cross events (ie. contentscript -> popup, vise-versa)
 			if (sender.tab && sender.tab.id == gsTabs[0]) { // Check that only events from the first open tab 
-				chrome.extension.sendRequest(request); 
-				if (debug) console.log("sharkzapper:",">E>",request.command,request);
+				sendRequest(request,'extension',true);
 			} else if (gsTabs.length > 0) {                 // Only send events to the first open tab (if available)
-				chrome.tabs.sendRequest(gsTabs[0], request); 
-				if (debug) console.log("sharkzapper:",">T>",request.command,request);
+				sendRequest(request,'tab',true);
 			}
 			
 			// Handle commands - note that this is not all the commands, merely ones that the background page needs to do something with
@@ -97,27 +131,34 @@
 		        // This is sent each time a popup is open, we give some initialisation settings such as enabled, tabId, etc.
 				case 'popupInit':
 					if (debug) console.log('Got popup init, re-checking tabs');
-					get_gs_tab(function(){
-						chrome.extension.sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen});
-						chrome.tabs.sendRequest(gsTabs[0], {"command":"updateStatus"});
-					},respond_callback({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen}));
+					get_gs_tab(function(){ //success (at least one open tab)
+						sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen},'extension');
+						sendRequest({"command":"updateStatus"},'tab');
+					},function(){ // fail (no open tab)
+					    if (getSetting('newTabOnPopupClick')) {
+					        open_gs_tab();
+    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":true},'extension');
+					    } else {
+    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
+					    }
+					});
 					break;
+                
+                // This is sent when Grooveshark is closing (or has closed)					
+				case 'gsTabClosing':
+				    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
+				    break;
 				
 				// This is sent from the popup to open the current grooveshark tab or create a new one
 				// The url is appended to the end http://listen.grooveshark.com/
 				case 'openGSTab':
-					open_gs_tab(request.url);
+					get_gs_tab(open_gs_tab,open_gs_tab,request.url);
 					break;
 					
 				// This is sent from a content script to check how many tabs are currently open
 				// This message is sent to ALL grooveshark tabs EXCEPT the first, so other tabs can display a warning
 				case 'getTabCount':
-					get_gs_tab(function(){
-						for (i=1;i<gsTabs.length;i++) {
-							chrome.tabs.sendRequest(gsTabs[i], {"command":"tabCount", "tabCount": gsTabs.length});
-						}
-						if (debug) console.log("sharkzapper:",">ALLT>",request.command, request);
-					});
+					get_gs_tab(function(){sendRequest({"command":"tabCount", "tabCount": gsTabs.length},'othertabs')});
 					break;
 					
 				// This is sent from a content script to open the current grooveshark tab AND close the sender's tab
@@ -132,7 +173,7 @@
 					chrome.tabs.get(gsTabs[0], function(request){ return function(tab){
 						if (tab.selected) return; //ignore notifications if tab is open
 						if (window.webkitNotifications) {
-							notification = window.webkitNotifications.createNotification('','grooveshark',request.message); 
+							notification = window.webkitNotifications.createNotification('','',request.message); 
 							notification.ondisplay = function() { setTimeout(function(){ notifications.shift().cancel();}, 5000); };
 							notification.show();
 							notifications.push(notification);
@@ -153,11 +194,22 @@
 			    // This is sent from a content script many times a second. Most processing for this is done in the popup,
 			    // however we also set the title of the browser action to the song / artist name
 			    case 'statusUpdate':
+			        if (lastSong && request.currentSong && request.currentSong.SongName == lastSong.SongName && request.currentSong.ArtistName == lastSong.ArtistName && request.currentSong.AlbumName == lastSong.AlbumName) return;
 			        if (request.currentSong) {
     			        chrome.browserAction.setTitle({"title":request.currentSong.SongName + "\n" + request.currentSong.ArtistName});
+    			        if (window.webkitNotifications && getSetting("showNotificationOnSongChange")) {
+    			            for (i in songNotifications) {
+    			                songNotifications.shift().cancel();
+    			            }
+							notification = window.webkitNotifications.createNotification((request.currentSong.CoverArtFilename) ? request.currentSong.artPath + 'm' + request.currentSong.CoverArtFilename : defaultAlbumArtUrl,request.currentSong.SongName,request.currentSong.ArtistName); 
+							notification.ondisplay = function() { setTimeout(function(){ songNotifications.shift().cancel();}, 5000); };
+							notification.show();
+							songNotifications.push(notification);
+						}
 			        } else { 
                         chrome.browserAction.setTitle({"title":"SharkZapper"});
                     }
+                    lastSong = request.currentSong;
                     break;
                     
                 // This is sent from a content script when the interactionTime popup appears
@@ -175,13 +227,90 @@
                 case 'interactionTimeResume':
                     if (interactionPopupOpen) interactionPopup.cancel();
                     break;
+                    
+                // This is sent from a content script when it needs to load a (local) view file
+                case 'fetchView':
+                    if (!request.viewName) { console.error("Cannot fetch view - no viewName specified"); }
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET",chrome.extension.getURL(request.viewName + '.ejs'));
+                    xhr.onreadystatechange= function(request){
+                        return function() {
+                            if (xhr.readyState == 4) {
+                                if (xhr.responseText) {
+                                    response = request;
+                                    response.command = 'viewUpdate';
+                                    response.view = xhr.responseText;
+                                    sendRequest(response, 'tab');
+                                } else {XMLHttpRequest
+                                    console.error("Could not fetch "+request.viewName + '.ejs',xhr);
+                                }
+                            }
+                        }
+                    }(request);
+                    xhr.send();
+                    break;
+                    
+                // This is sent from a content script when it loads - we just send its settings
+                case 'contentScriptInit':
+                    if (!localStorage.settings) return;
+                    sendRequest({"command":"settingsUpdate","settings":JSON.parse(localStorage.settings)},'tab');
+                    break;
+                
+                // This is sent to get all the settings
+                case 'fetchSettings':
+                    if (!localStorage.settings) return;
+                    request.command = "settingsUpdate";
+                    request.settings = JSON.parse(localStorage.settings);
+                    sendRequest(request,'tab');
+                    break;
+                
+                // This is sent from a content script when it updates settings and we save the settings to localStorage
+                case 'settingsUpdate':
+                    localStorage.settings = JSON.stringify(request.settings);
+                    if (debug) console.log ("Saved Settings!",request.settings);
+                    break;
+                    
+                // This is sent to get a single setting, and sends the response directly back (requires callback on sender)
+                case 'getSetting':
+                    if (!request.settingName) return;
+                    sendResponse(getSetting(request.settingName));
 			}
 		}
 	);
 	
+	// We pass all requests through here so all requests can be easily debugged
+	function sendRequest(request,dest,dontModifySource) {
+	    if (!dontModifySource) request.source = "background";
+	    switch (dest) {
+	        case 'extension':
+	            chrome.extension.sendRequest(request); 
+				if (debug) console.log("sharkzapper:",">E>",request.command,request);
+				break;
+			case 'tab':
+			    chrome.tabs.sendRequest(gsTabs[0], request); 
+				if (debug) console.log("sharkzapper:",">T>",request.command,request);
+				break;
+			case 'othertabs': // all tabs except first (active) tab
+			    for (i=1;i<gsTabs.length;i++) {
+					chrome.tabs.sendRequest(gsTabs[i], request);
+				}
+				if (debug) console.log("sharkzapper:",">OTHERT>",request.command, request);
+				break;
+			case 'alltabs': // all tabs including first (active) tab
+			    for (i=0;i<gsTabs.length;i++) {
+					chrome.tabs.sendRequest(gsTabs[i], request);
+				}
+				if (debug) console.log("sharkzapper:",">ALLT>",request.command, request);
+				break;
+	        default:
+	            console.error('sendRequest called with unknown destination:',dest);
+	            break;
+	    }
+	}
+	
 	// simple function to make a callback that sends a request - see popupInit code
-	function respond_callback(response) {
-		return function(){chrome.extension.sendRequest(response)};
+	function respond_callback(response,dest,dontModifySource) {
+		return function(){sendRequest(response,dest,dontModifySource)};
 	}
 	
 	// Inject all currently open tabs with our content script

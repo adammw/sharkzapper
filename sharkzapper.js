@@ -382,16 +382,18 @@ function cleanupDoneListener(e){
     if (debug) console.log("got cleanupDone message, inject new:",request.injectNew);
     if (request.injectNew) { inject_sharkzapper(); }
 }
-var inject = document.getElementById('sharkzapperInject');
-if (inject && (debug || inject.className != 'version_'+thisVersion)) {
-    if (debug) console.log('sharkzapper already injected ('+inject.className+'), trying to remove and replace with us! (crosses fingers)');			
-    if (inject.className == '') {   //workaround for broken injection behaviour in version 1.2.7 and below
-        if (debug) console.log('sharkzapper pre-1.2.7 injected, attempting to workaround broken injection behaviour');
-        clean_up(false);
-        setTimeout(inject_sharkzapper,500); //hopefully should have cleaned up by 500ms.
+if (window.location.pathname != "/sidebar.php") {
+    var inject = document.getElementById('sharkzapperInject');
+    if (inject && (debug || inject.className != 'version_'+thisVersion)) {
+        if (debug) console.log('sharkzapper already injected ('+inject.className+'), trying to remove and replace with us! (crosses fingers)');			
+        if (inject.className == '') {   //workaround for broken injection behaviour in version 1.2.7 and below
+            if (debug) console.log('sharkzapper pre-1.2.7 injected, attempting to workaround broken injection behaviour');
+            clean_up(false);
+            setTimeout(inject_sharkzapper,500); //hopefully should have cleaned up by 500ms.
+        } else {
+            clean_up(true);
+        }
     } else {
-        clean_up(true);
+        if (!inject) inject_sharkzapper();
     }
-} else {
-    if (!inject) inject_sharkzapper();
 }

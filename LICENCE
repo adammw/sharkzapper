@@ -4,10 +4,3 @@ You may not create deriviate versions of the software without written permission
 
 Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
 "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
-
-== TODO LIST ==
-* Add keyboard shortcuts
- => Choice: Include in main extension (will require permission to all data on all sites) or 
-            Make a separate extension which interacts with sharkzapper (which the user will have to install separately)
-
-* Make an options page to let the user choose what they want

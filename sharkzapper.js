@@ -1,7 +1,7 @@
 /*
  * sharkZapper is Copyright (C) 2010 Adam Malcontenti-Wilson <adman.com@gmail.com>
- * You are hereby granted to use the software as-is, and view the source code for educational purposes.
- * You may not create deriviate versions of the software without permission of the author.
+ * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
+ * You may not create deriviate versions of the software without written permission of the author.
  * 
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.

@@ -147,6 +147,7 @@
                 // This is sent when Grooveshark is closing (or has closed)					
 				case 'gsTabClosing':
 				    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
+				    chrome.browserAction.setTitle({"title":"SharkZapper"});
 				    break;
 				
 				// This is sent from the popup to open the current grooveshark tab or create a new one
@@ -207,7 +208,7 @@
 							songNotifications.push(notification);
 						}
 			        } else { 
-                        chrome.browserAction.setTitle({"title":"SharkZapper"});
+                        chrome.browserAction.setTitle({"title":"sharkZapper"});
                     }
                     lastSong = request.currentSong;
                     break;

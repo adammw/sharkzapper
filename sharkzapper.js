@@ -7,9 +7,10 @@
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
 var recieveMessage, sendRequest, inject, tabnavListener;
-var debug = false;
+var debug = true;
+var thisVersion = '1.2.7';
 function inject_sharkzapper() {
-
+    if(debug) console.log("injecting sharkzapper version "+thisVersion);
     sendRequest({"command": "getTabCount"});
 
     function receiveMessage(e) {
@@ -30,12 +31,12 @@ function inject_sharkzapper() {
                 receiveMessage = function(e){ console.error('got messages from dead function',e); };
                 receiveRequest = function(e){ console.error('got requests from dead function',e); };
                 if (request.injectNew) {
-                    if (debug) console.log("cleanup stage2 done! attempting to inject new sharkzapper");
-                    inject_sharkzapper();
-                    if (debug) console.log("new sharkzapper injected, hopefully");
+                    if (debug) console.log("cleanup stage2 done! attempting to inject new sharkzapper (not done by us - sending message)");
                 } else {
                     if (debug) console.log("cleanup stage2 done! leaving.");
                 }
+                sendMessage({"command":"cleanupDone","injectNew":request.injectNew});
+                sendRequest({"command":"cleanupDone","injectNew":request.injectNew});
                 break;
 	    }
     }
@@ -95,6 +96,7 @@ function inject_sharkzapper() {
 
     inject = document.createElement('script');
     inject.id = 'sharkzapperInject'; 
+    inject.className = 'version_'+thisVersion;
     inject.innerHTML = '        var sharkzapper_debug = false;\
                                 function sharkzapper_update_status() {\
                                 gs_status = {\
@@ -210,7 +212,10 @@ function inject_sharkzapper() {
     document.body.appendChild(inject);
 }
 function clean_up(injectNew) {
-    if (debug) console.log('running cleanup with injectNew:', injectNew);			
+    if (debug) console.log('running cleanup with injectNew:', injectNew);		
+    // add listener to run injection when done cleaning up
+    window.addEventListener("message", cleanupDoneListener, false); 
+    	
 	// clean up old injection
     document.body.removeChild(document.getElementById('sharkzapperInject'));
     cleanup = document.createElement('script');
@@ -235,6 +240,7 @@ function clean_up(injectNew) {
                         if (sharkzapper_debug) console.log("cleanup stage1 done!");';
     cleanup.innerHTML=js;
     document.body.appendChild(cleanup);
+    
 }
 function tabnavListener(e){
     if (e.origin != "http://listen.grooveshark.com") return;
@@ -243,9 +249,24 @@ function tabnavListener(e){
     chrome.extension.sendRequest(request);
     window.removeEventListener("message",tabnavListener,false);
 }
-if (document.getElementById('sharkzapperInject')) {
-    if (debug) console.log('sharkzapper already injected, trying to remove and replace with us! (crosses fingers)');			
-	clean_up(true);
+function cleanupDoneListener(e){
+    if (e.origin != "http://listen.grooveshark.com") return;
+    var request = JSON.parse(e.data)
+    if (request.command != 'cleanupDone') return;
+    window.removeEventListener("message",cleanupDoneListener,false);
+    if (debug) console.log("got cleanupDone message, inject new:",request.injectNew);
+    if (request.injectNew) { inject_sharkzapper(); }
+}
+var inject = document.getElementById('sharkzapperInject');
+if (inject && (debug || inject.className != 'version_'+thisVersion)) {
+    if (debug) console.log('sharkzapper already injected ('+inject.className+'), trying to remove and replace with us! (crosses fingers)');			
+    if (inject.className == '') {   //workaround for broken injection behaviour in version 1.2.7 and below
+        if (debug) console.log('sharkzapper pre-1.2.7 injected, attempting to workaround broken injection behaviour');
+        clean_up(false);
+        setTimeout(inject_sharkzapper,500); //hopefully should have cleaned up by 500ms.
+    } else {
+        clean_up(true);
+    }
 } else {
     inject_sharkzapper();
 }

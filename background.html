@@ -16,6 +16,7 @@
 	// Global variables
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var gsTabs = [];
+	var gsTabContentScriptLoaded = false;
 	var notifications = [];
 	var songNotifications = [];
 	var debug = false;
@@ -137,7 +138,7 @@
 				case 'popupInit':
 					if (debug) console.log('Got popup init, re-checking tabs');
 					get_gs_tab(function(){ //success (at least one open tab)
-						sendRequest({"command":"popupUpdate","enabled":true,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen},'extension');
+						sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen},'extension');
 						sendRequest({"command":"updateStatus"},'tab');
 					},function(){ // fail (no open tab)
 					    if (getSetting('newTabOnPopupClick')) {
@@ -146,6 +147,7 @@
 					    } else {
     					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
 					    }
+					    gsTabContentScriptLoaded = false;
 					});
 					break;
                 
@@ -153,6 +155,7 @@
 				case 'gsTabClosing':
 				    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
 				    chrome.browserAction.setTitle({"title":"SharkZapper"});
+				    gsTabContentScriptLoaded = false;
 				    break;
 				
 				// This is sent from the popup to open the current grooveshark tab or create a new one
@@ -258,6 +261,7 @@
                     
                 // This is sent from a content script when it loads - we just send its settings
                 case 'contentScriptInit':
+                    gsTabContentScriptLoaded = true;
                     if (!localStorage.settings) return;
                     sendRequest({"command":"settingsUpdate","settings":JSON.parse(localStorage.settings)},'tab');
                     break;

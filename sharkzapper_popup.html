@@ -246,6 +246,20 @@
 		chrome.extension.sendRequest(request);
 	}
 	
+	function loadVolumeEffects() {
+	    $("#player_volume").mouseenter(function(){
+            $("#volumeControl").fadeIn(200);
+            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
+            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+        });
+        $("#volumeControl").mouseenter(function(){
+            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
+        });
+        $("#volumeControl").mouseleave(function(){
+            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+        });
+	}
+	
 	function volumeUpdate(a,b) {
 	    console.log('volume update',a,b);
 	}
@@ -310,16 +324,8 @@
         });
         
         // Volume Control effects
-        $("#player_volume").mouseenter(function(){
-            $("#volumeControl").fadeIn(200);
-            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
-            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
-        });
-        $("#volumeControl").mouseenter(function(){
-            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
-        });
-        $("#volumeControl").mouseleave(function(){
-            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+        getSetting("showVolumeControlOnHover",function(showVolumeControlOnHover) {
+            if(showVolumeControlOnHover) loadVolumeEffects();
         });
         
         // Set up volume slider
@@ -471,6 +477,12 @@
 				case 'settingsUpdate':
 				    if (!request.settings) return;		        
 			        $('#search').toggleClass('hidden',!request.settings.showSearchBox);
+			        if(request.settings.showVolumeControlOnHover) {
+    			        loadVolumeEffects();
+			        } else {
+			            $('#volumeControl').hide();
+			            $("#player_volume,#volumeControl").unbind('mouseenter').unbind('mouseleave');
+			        }
 			        break;
 			}		
 		}

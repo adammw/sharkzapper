@@ -26,9 +26,9 @@
 	var interactionPopup;
 	var interactionPopupOpen = false;
 	var lastSong = {};
-	var settingsVersion = 4;
+	var settingsVersion = 5;
 	var contextMenu = {};
-	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showNotificationOnSongChange": false, "showSearchBox": true}; 
+	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true}; 
 	
 	// Create settings with defaults
 	if (!localStorage.settings || localStorage.settingsVersion < settingsVersion) {

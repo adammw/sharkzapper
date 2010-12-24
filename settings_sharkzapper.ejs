@@ -16,6 +16,12 @@
                 <div class="clear"></div>
             </li>
             <li>
+                <input id="settings_sharkzapper_showVolumeControlOnHover" type="checkbox" tabindex="" name="settings_sharkzapper_showVolumeControlOnHover"
+                <% if (sharkzapperSettings.showVolumeControlOnHover) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showVolumeControlOnHover">Show Volume Control on mute button hover</label>
+                <div class="clear"></div>
+            </li>
+            <li>
                 <input id="settings_sharkzapper_showSearchBox" type="checkbox" tabindex="" name="settings_sharkzapper_showSearchBox"
                 <% if (sharkzapperSettings.showSearchBox) { %>checked="checked"<% } %>>
                 <label class="value label" for="settings_sharkzapper_showSearchBox">Show Search Box (not available in pinned version)</label>

@@ -61,6 +61,7 @@ function inject_sharkzapper() {
 		    case 'nextSong':
 		    case 'updateStatus':
 		    case 'toggleMute':
+            case 'togglePlayPause':
 		    case 'performSearch':
 		    case 'addToLibrary':
 		    case 'removeFromLibrary':
@@ -177,6 +178,15 @@ function inject_sharkzapper() {
 								        case "updateStatus":\
 									        sharkzapper_update_status();\
 									        break;\
+								        case "togglePlayPause":\
+								            if(GS.player.isPaused) {\
+								                GS.player.resumeSong();\
+							                } else if(GS.player.isPlaying){\
+							                    GS.player.pauseSong();\
+							                } else {\
+							                    GS.player.playSong();\
+						                    }\
+								            break;\
 								        case "toggleMute":\
 									        $("#player_volume").click();\
 									        sharkzapper_update_status();\

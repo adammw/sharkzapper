@@ -19,12 +19,14 @@
 	var notifications = [];
 	var songNotifications = [];
 	var debug = false;
+	var debugStatusUpdate = false;
 	var pinnedPopup;
 	var pinnedPopupOpen = false;
 	var interactionPopup;
 	var interactionPopupOpen = false;
 	var lastSong = {};
 	var settingsVersion = 4;
+	var contextMenu = {};
 	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showNotificationOnSongChange": false, "showSearchBox": true}; 
 	
 	// Create settings with defaults
@@ -81,6 +83,9 @@
 			chrome.tabs.executeScript(gsTabs[0], {'file':'jquery-1.4.4.min.js'});		
 			chrome.tabs.executeScript(gsTabs[0], {'file':'sharkzapper.js'});
 			if (debug) console.log('Injected scripts into existing tab #' + gsTabs[0]);
+			
+			// Add our context menu
+			create_contextmenu();
 		}
 	}
 
@@ -114,7 +119,7 @@
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
 		    // Print requests to the console in debug mode
-			if (debug) console.log("sharkzapper:","<<<",request.command,request);
+			if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:","<<<",request.command,request);
 			
 			// Ignore any requests without a command or from ourself
 			if (!request.command || request.source == "background") return;
@@ -285,23 +290,23 @@
 	    switch (dest) {
 	        case 'extension':
 	            chrome.extension.sendRequest(request); 
-				if (debug) console.log("sharkzapper:",">E>",request.command,request);
+				if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">E>",request.command,request);
 				break;
 			case 'tab':
 			    chrome.tabs.sendRequest(gsTabs[0], request); 
-				if (debug) console.log("sharkzapper:",">T>",request.command,request);
+				if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">T>",request.command,request);
 				break;
 			case 'othertabs': // all tabs except first (active) tab
 			    for (i=1;i<gsTabs.length;i++) {
 					chrome.tabs.sendRequest(gsTabs[i], request);
 				}
-				if (debug) console.log("sharkzapper:",">OTHERT>",request.command, request);
+				if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">OTHERT>",request.command, request);
 				break;
 			case 'alltabs': // all tabs including first (active) tab
 			    for (i=0;i<gsTabs.length;i++) {
 					chrome.tabs.sendRequest(gsTabs[i], request);
 				}
-				if (debug) console.log("sharkzapper:",">ALLT>",request.command, request);
+				if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">ALLT>",request.command, request);
 				break;
 	        default:
 	            console.error('sendRequest called with unknown destination:',dest);
@@ -312,6 +317,34 @@
 	// simple function to make a callback that sends a request - see popupInit code
 	function respond_callback(response,dest,dontModifySource) {
 		return function(){sendRequest(response,dest,dontModifySource)};
+	}
+	
+	function create_contextmenu() {
+	    if (!contextMenu.prev) contextMenu.prev=chrome.contextMenus.create({title:'Previous Song',contexts:['all'],onclick:contextmenu_callback});
+	    if (!contextMenu.playPause) contextMenu.playPause=chrome.contextMenus.create({title:'Play/Pause',contexts:['all'],onclick:contextmenu_callback});
+        if (!contextMenu.next) contextMenu.next=chrome.contextMenus.create({title:'Next Song',contexts:['all'],onclick:contextmenu_callback});	    
+	}
+	
+	function contextmenu_callback(info, tab) {
+        var action = null;
+	    for (key in contextMenu) {
+	        if (contextMenu[key] == info.menuItemId) {
+	            action = key;
+	            break;
+	        }
+	    }
+	    if (debug) console.log("Context menu clicked",action,info,tab);
+	    switch (action) {
+	        case 'prev':
+	            sendRequest({command:"prevSong"},'tab');
+	            break;
+            case 'playPause':
+	            sendRequest({command:"togglePlayPause"},'tab');
+	            break;
+            case 'next':
+	            sendRequest({command:"nextSong"},'tab');
+	            break;
+	    }
 	}
 	
 	// Inject all currently open tabs with our content script

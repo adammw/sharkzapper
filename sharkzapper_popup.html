@@ -196,8 +196,30 @@
         height: 14px;
         line-height: 14px;
     }
+    
+    #volumeControl {
+        bottom: 10px;
+        left: 4px;
+        width: 180px;
+        height: 32px;
+        background: url(volume_bg.png) no-repeat;
+    }
+    body.notification #volumeControl {
+        top: 90px;
+    }
+    #volumeSlider {
+        width: 150px;
+        height: 16px;
+    }
+    #volumeSlider .ui-slider-range{
+        margin: 6px;
+        height: 8px;
+        bottom: -3px;
+        background: url(volume_range.png) repeat-x;
+    }
 	</style>
 	<script type="text/javascript" src="./jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="./jquery-ui-1.8.7.slider.min.js"></script>
 	<script type="text/javascript">
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];
@@ -223,11 +245,18 @@
 		if (debug) console.log("sharkzapper:",">>>",request.command,request);
 		chrome.extension.sendRequest(request);
 	}
+	
+	function volumeUpdate(a,b) {
+	    console.log('volume update',a,b);
+	}
 
 	$(document).ready(function(){
+	    // Add class for notification
 	    if(location.hash == '#notification') {
 	        $('body').addClass('notification');
     	}
+    	
+    	// Add Button click handlers
 		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
 		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
 	    $('#pin').click(function(){sendMessage({"command": "pinPopup"});});
@@ -262,19 +291,45 @@
 		$('#radioFrownBtn').click(function(){
 			sendMessage({"command": "toggleFrown"});
 		});
-		$('#search_form').submit(function(){ 
-			sendMessage({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
-			sendMessage({"command":"performSearch", "query": $('#searchBox').val()});
-		    	$('#searchBox').val(''); $('#searchBox').blur(); return false; 
-		});
 		$('#songDetails a').click(function(e){
 			sendMessage({"command":"openGSTab", "url": $(this).attr('href')});
 		    e.preventDefault();
 		    return false;
 		});
 		
+		// Add Search form handler
+		$('#search_form').submit(function(){ 
+			sendMessage({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
+			sendMessage({"command":"performSearch", "query": $('#searchBox').val()});
+		    	$('#searchBox').val(''); $('#searchBox').blur(); return false; 
+		});
+		
+		// Hide/show elements based on settings
 		getSetting("showSearchBox",function(showSearchBox) {
             $('#search').toggleClass('hidden',!showSearchBox);
+        });
+        
+        // Volume Control effects
+        $("#player_volume").mouseenter(function(){
+            $("#volumeControl").fadeIn(200);
+            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
+            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+        });
+        $("#volumeControl").mouseenter(function(){
+            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
+        });
+        $("#volumeControl").mouseleave(function(){
+            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+        });
+        
+        // Set up volume slider
+        $("#volumeSlider").slider({
+            orientation: "horizontal",
+            range: "min",
+            min: 0,
+            max: 100,
+            slide: volumeUpdate,
+            change: volumeUpdate
         });
 	});
 	
@@ -301,6 +356,9 @@
 					break;
 				case 'statusUpdate':
 					if (request.currentSong) {
+					    $('button').removeAttr('disabled');
+						$('button').removeClass('disabled');
+					
 						$('#songName').text(request.currentSong.SongName);
 						$('#albumName').text(request.currentSong.AlbumName);
 						$('#artistName').text(request.currentSong.ArtistName);
@@ -454,6 +512,10 @@
 			<a class="btn btn_style1 icon favorite" title="Add to Favorites" id="addToFavoritesBtn"></a>
 			<a class="btn btn_style1 radio_btn icon smile" title="Smile" id="radioSmileBtn"></a>
 			<a class="btn btn_style1 radio_btn icon frown" title="Frown" id="radioFrownBtn"></a>
+		</div>
+		<div id="volumeControl">
+		    <div id="volumeSlider">
+		    </div>
 		</div>
 		<div class="fltrht"><button id="player_volume" class="player_control hidden" title="Volume Mute"></button></div>
 		<div id="search">

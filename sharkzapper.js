@@ -72,6 +72,7 @@ function inject_sharkzapper() {
             case 'interactionTimeResume':
             case 'settingsUpdate':
             case 'viewUpdate':
+            case 'volumeUpdate':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -117,7 +118,8 @@ function inject_sharkzapper() {
 					                "currentSong": GS.player.currentSong,\
 					                "isPlaying": GS.player.isPlaying,\
 					                "isPaused": GS.player.isPaused,\
-					                "isMuted": GS.player.getIsMuted()\
+					                "isMuted": GS.player.getIsMuted(),\
+					                "volume": GS.player.getVolume(),\
 				                };\
 				                if (GS.player.currentSong) {\
 					                gs_status.urls = {"song": GS.player.currentSong.toUrl()};\
@@ -191,6 +193,9 @@ function inject_sharkzapper() {
 									        $("#player_volume").click();\
 									        sharkzapper_update_status();\
 									        break;\
+								        case "volumeUpdate":\
+								            GS.player.setVolume(request.volume);\
+								            break;\
 								        case "addToLibrary":\
 									        if (request.songId) GS.user.addToLibrary(request.songId);\
 									        break;\

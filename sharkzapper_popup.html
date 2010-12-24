@@ -227,6 +227,8 @@
 	var tabId = null;
 	var debug = false;
 	var scrollTimeouts = [];
+	var volumeControlTimeout = null;
+	var lastVolume = null;
 
 	String.prototype.pad = function(l, s){
     return (l -= this.length) > 0 
@@ -260,8 +262,9 @@
         });
 	}
 	
-	function volumeUpdate(a,b) {
-	    console.log('volume update',a,b);
+	function volumeUpdate(e,b) {
+        if (debug) console.log('volume update',e,b);
+	    if (e.originalEvent) sendMessage({"command":"volumeUpdate","volume":$('#volumeSlider').slider("option", "value")});
 	}
 
 	$(document).ready(function(){
@@ -434,7 +437,6 @@
                         $('#queue_position').addClass('hidden');
                     } else {
                         getSetting("showQueuePosition",function(showQueuePosition) {
-                            console.log(showQueuePosition);
                             $('#queue_position').toggleClass('hidden',!showQueuePosition);
                         });
                     }
@@ -473,6 +475,10 @@
 						$('#radioSmileBtn').toggleClass('selected',request.isSmile);
 						$('#radioFrownBtn').toggleClass('selected',request.isFrown);	
 					}
+					if (request.volume != lastVolume) {
+					    $("#volumeSlider").slider("option","value",request.volume);
+					}
+					lastVolume = request.volume;
 					break;
 				case 'settingsUpdate':
 				    if (!request.settings) return;		        

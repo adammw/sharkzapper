@@ -237,6 +237,7 @@
 	var songId = null;
 	var tabId = null;
 	var debug = false;
+	var debugStatusUpdate = false;
 	var scrollTimeouts = [];
 	var volumeControlTimeout = null;
 	var lastVolume = null;
@@ -356,11 +357,12 @@
 	
 	chrome.extension.onRequest.addListener(
 		function(request, sender, sendResponse) {
-			if (debug) console.log("sharkzapper:","<<<",request.command,request,sender);
+			if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:","<<<",request.command,request,sender);
 			if (!request.command) return;
 			if (tabId && sender.tab && sender.tab.id != tabId) return; //stop multiple tabs sending us updates
 			switch (request.command) {
 				case 'popupUpdate':
+				    if($('body').hasClass('notification') && request.includeNotification != true) return;
 				    if (request.closeImmediately) window.close();
 					if (request.enabled) {
 						$('button').removeAttr('disabled');

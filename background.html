@@ -137,23 +137,23 @@
 		        // This is sent each time a popup is open, we give some initialisation settings such as enabled, tabId, etc.
 				case 'popupInit':
 					if (debug) console.log('Got popup init, re-checking tabs');
-					get_gs_tab(function(){ //success (at least one open tab)
-						sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen},'extension');
+					get_gs_tab(function(notification){return function(){ //success (at least one open tab)
+						sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen,"includeNotification":notification},'extension');
 						sendRequest({"command":"updateStatus"},'tab');
-					},function(){ // fail (no open tab)
+					};}(request.notification),function(notification){ return function(){ // fail (no open tab)
 					    if (getSetting('newTabOnPopupClick')) {
 					        open_gs_tab();
-    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":true},'extension');
+    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":true,"includeNotification":notification},'extension');
 					    } else {
-    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
+    					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false,"includeNotification":notification},'extension');
 					    }
 					    gsTabContentScriptLoaded = false;
-					});
+					};}(request.notification));
 					break;
                 
                 // This is sent when Grooveshark is closing (or has closed)					
 				case 'gsTabClosing':
-				    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false},'extension');
+				    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false,"includeNotification":true},'extension');
 				    chrome.browserAction.setTitle({"title":"SharkZapper"});
 				    gsTabContentScriptLoaded = false;
 				    break;

@@ -61,13 +61,24 @@
         width: 180px;
     }
 	#pin { 
-	    background: transparent url(pin.png); 
+	    background: transparent url(pin.png) no-repeat; 
 	    height: 16px;
 	    width: 17px;
         display: block;
         position: absolute;
         right: 115px;
         top: 12px;
+	}
+	#settingsBtn {
+	    position: absolute;
+        right: 136px;
+        top: 12px;
+        height: 16px;
+        width: 16px;
+        background: transparent url(settings_icon.png) no-repeat;
+	}
+	body.notification #settingsBtn, #settingsBtn.noPin {
+	    right: 118px;
 	}
 	#thumbnail {
 		position: absolute;
@@ -274,9 +285,10 @@
     	}
     	
     	// Add Button click handlers
-		$('#player_previous').click(function(){sendMessage({"command": "prevSong"});});
-		$('#player_next').click(function(){sendMessage({"command": "nextSong"});});
-	    $('#pin').click(function(){sendMessage({"command": "pinPopup"});});
+		$('#player_previous').click(function(){sendMessage({"command": "prevSong"})});
+		$('#player_next').click(function(){sendMessage({"command": "nextSong"})});
+	    $('#pin').click(function(){sendMessage({"command": "pinPopup"})});
+	    $('#settingsBtn').click(function(){sendMessage({"command":"openGSTab", "url":"#/settings/sharkzapper"})});
 		$('#player_play_pause').click(function(){
 			if($('#player_play_pause').hasClass('paused')) {
 				sendMessage({"command": "resumeSong"});
@@ -360,7 +372,10 @@
 						$('button').attr('disabled','disabled');
 						$('#player_play_pause').removeClass('pause');
 					}
-					if (request.pinnedPopupOpen) $('#pin').addClass('hidden');
+					if (request.pinnedPopupOpen) {
+					    $('#pin').addClass('hidden');
+                        $('#settingsBtn').addClass('noPin');
+                    }
 					if (request.tabId) tabId = request.tabId;
 					break;
 				case 'statusUpdate':
@@ -499,9 +514,10 @@
 </head>
 <body>
 	<div id="header">
-		<a id="grooveshark">
+		<a id="grooveshark" title="Open Grooveshark">
 			<span>Grooveshark</span>
 		</a>
+		<a id="settingsBtn" title="Open sharkZapper settings"></a>
 		<a id="pin" title="Pin this window to bottom corner"></a>
 	</div>
 	<div id="bufferinglogo" class="hidden"></div>

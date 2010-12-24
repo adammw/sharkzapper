@@ -273,9 +273,6 @@
 		    return false;
 		});
 		
-		getSetting("showMuteButton",function(showMuteButton) {
-            $('body:not(.notPlaying) #player_volume').toggleClass('hidden',!showMuteButton);
-        });
 		getSetting("showSearchBox",function(showSearchBox) {
             $('#search').toggleClass('hidden',!showSearchBox);
         });

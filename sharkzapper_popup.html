@@ -404,7 +404,6 @@
             $('#player_controls_playback').toggleClass('hidden',!showPlaybackButtons);
         });
         getSetting("showAlbumArt",function(showAlbumArt) {
-            //$('#thumbnail').toggleClass('hidden',!showAlbumArt);
             $('body').toggleClass('noAlbumArt',!showAlbumArt);
         });
         
@@ -583,7 +582,6 @@
 			        }
 			        $('#player_controls_right').toggleClass('hidden',!request.settings.showQueueButtons);
 			        $('#player_controls_playback').toggleClass('hidden',!request.settings.showPlaybackButtons);
-			        //$('#thumbnail').toggleClass('hidden',!request.settings.showAlbumArt);
 			        $('body').toggleClass('noAlbumArt',!request.settings.showAlbumArt);
 			        break;
 			}		

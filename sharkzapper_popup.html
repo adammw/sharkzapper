@@ -20,13 +20,16 @@
 		-webkit-user-select: none;
 		cursor: default;
 	}
+	body.noAlbumArt {
+	    min-width: 200px;
+	}
 	body.notPlaying {
 		min-height: 60px;
 	}
 	a, a:hover {
 	    color: white !important;
     }
-	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position, body.notPlaying #player_controls_right { display: none !important; }
+	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position, body.notPlaying #player_controls_right, body.noAlbumArt #thumbnail { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
 	#thumbnail { overflow: hidden; }
@@ -94,6 +97,9 @@
         right: 115px;
         top: 12px;
 	}
+	body.noAlbumArt #pin {
+	    right: 15px;
+    }
 	#settingsBtn {
 	    position: absolute;
         right: 136px;
@@ -102,8 +108,14 @@
         width: 16px;
         background: transparent url(settings_icon.png) no-repeat;
 	}
+	body.noAlbumArt #settingsBtn {
+	    right: 36px;
+	}
 	body.notification #settingsBtn, #settingsBtn.noPin {
 	    right: 118px;
+	}
+	body.noAlbumArt.notification #settingsBtn, body.noAlbumArt #settingsBtn.noPin {
+	    right: 18px;
 	}
 	#thumbnail {
 		position: absolute;
@@ -119,8 +131,14 @@
 		padding: 8px;
 		margin-right: 115px;
 	}
+	body.noAlbumArt #songDetails {
+	    margin-right: 5px;
+	}
 	#lowerControls {
 		margin-right: 110px;
+	}
+	body.noAlbumArt #lowerControls {
+	    margin-right: 5px;
 	}
 	#songName {
 		font-weight: bold;
@@ -385,6 +403,10 @@
         getSetting("showPlaybackButtons",function(showPlaybackButtons) {
             $('#player_controls_playback').toggleClass('hidden',!showPlaybackButtons);
         });
+        getSetting("showAlbumArt",function(showAlbumArt) {
+            //$('#thumbnail').toggleClass('hidden',!showAlbumArt);
+            $('body').toggleClass('noAlbumArt',!showAlbumArt);
+        });
         
         // Volume Control effects
         getSetting("showVolumeControlOnHover",function(showVolumeControlOnHover) {
@@ -561,6 +583,8 @@
 			        }
 			        $('#player_controls_right').toggleClass('hidden',!request.settings.showQueueButtons);
 			        $('#player_controls_playback').toggleClass('hidden',!request.settings.showPlaybackButtons);
+			        //$('#thumbnail').toggleClass('hidden',!request.settings.showAlbumArt);
+			        $('body').toggleClass('noAlbumArt',!request.settings.showAlbumArt);
 			        break;
 			}		
 		}

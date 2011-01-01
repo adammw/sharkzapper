@@ -318,6 +318,17 @@
     	// Add Button click handlers
 		$('#player_previous').click(function(){sendMessage({"command": "prevSong"})});
 		$('#player_next').click(function(){sendMessage({"command": "nextSong"})});
+		$('#player_shuffle').click(function(){sendMessage({"command": "setShuffle", "shuffle": !$('#player_shuffle').hasClass('active')})});
+		$('#player_crossfade').click(function(){sendMessage({"command": "setCrossfadeEnabled", "enabled": !$('#player_crossfade').hasClass('active')})});
+		$('#player_loop').click(function(){
+		    if ($(this).hasClass("active") && $(this).hasClass("one")) {
+                sendMessage({"command": "setRepeat", "repeatMode":"REPEAT_NONE"});
+            } else if ($(this).hasClass("active")) {
+                sendMessage({"command": "setRepeat", "repeatMode":"REPEAT_ONE"});
+            } else {
+                sendMessage({"command": "setRepeat", "repeatMode":"REPEAT_ALL"});
+            }
+		});
 	    $('#pin').click(function(){sendMessage({"command": "pinPopup"})});
 	    $('#settingsBtn').click(function(){sendMessage({"command":"openGSTab", "url":"#/settings/sharkzapper"})});
 		$('#player_play_pause').click(function(){

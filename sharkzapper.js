@@ -8,7 +8,7 @@
  */
 var recieveMessage, sendRequest, inject, tabnavListener;
 var debug = false;
-var thisVersion = '1.3.6';
+var thisVersion = '1.3.8';
 function inject_sharkzapper() {
     if(debug) console.log("injecting sharkzapper version "+thisVersion);
     sendRequest({"command": "getTabCount"});
@@ -73,6 +73,9 @@ function inject_sharkzapper() {
             case 'settingsUpdate':
             case 'viewUpdate':
             case 'volumeUpdate':
+            case 'setShuffle':
+            case 'setCrossfadeEnabled':
+            case 'setRepeat':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -229,6 +232,25 @@ function inject_sharkzapper() {
 						                    GS.Controllers.Page.SettingsController.instance().sharkzapperSettings = request.settings;\
 							                if (request.callback && typeof this[request.callback] == "function") this[request.callback].call(this,request);\
 						                    break;\
+					                    case "setShuffle":\
+					                        if (request.shuffle == undefined) { if(debug){console.error("setShuffle called without shuffle parameter");}return; }\
+					                        GS.player.setShuffle(request.shuffle);\
+					                        break;\
+				                        case "setCrossfadeEnabled":\
+				                            if (request.enabled == undefined) { if(debug){console.error("setCrossfadeEnabled called without enabled parameter");}return; }\
+			                                if (GS.user.UserID <= 0 || !GS.user.IsPremium){GS.lightbox.open("vipOnlyFeature"); return;}\
+			                                GS.player.setCrossfadeEnabled(request.enabled);\
+			                                break;\
+		                                case "setRepeat":\
+		                                    if (request.repeatMode == undefined) { if (debug){console.error("setRepeat called without repeatMode parameter");} return; }\
+	                                        if (typeof request.repeatMode == "string" && request.repeatMode.substring(0,7) == "REPEAT_") {\
+	                                            request.repeatMode = GS.player[request.repeatMode];\
+	                                        }\
+	                                        GS.player.setRepeat(request.repeatMode);\
+	                                        if (request.repeatMode === GS.player.REPEAT_ALL) $("#player_loop").removeClass("none").removeClass("one").addClass("all").addClass("active");\
+                                            else if (request.repeatMode === GS.player.REPEAT_ONE) $("#player_loop").removeClass("all").addClass("one").addClass("active");\
+                                            else request.repeatMode === GS.player.REPEAT_NONE && $("#player_loop").removeClass("one").addClass("none").removeClass("active");\
+	                                        break;\
 							        }\
 						        }\
 					        }\

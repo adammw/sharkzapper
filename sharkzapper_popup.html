@@ -26,7 +26,7 @@
 	a, a:hover {
 	    color: white !important;
     }
-	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position { display: none !important; }
+	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position, body.notPlaying #player_controls_right { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
 	#thumbnail { overflow: hidden; }
@@ -239,6 +239,7 @@
         width: 180px;
         height: 32px;
         background: url(volume_bg.png) no-repeat;
+        display: none;
     }
     body.notification #volumeControl {
         top: 90px;
@@ -259,6 +260,7 @@
 	<script type="text/javascript">
 	var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 	var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];
+	var repeatMap = ["REPEAT_NONE","REPEAT_ALL","REPEAT_ONE"];
 	var songId = null;
 	var tabId = null;
 	var debug = false;
@@ -288,6 +290,8 @@
 	function loadVolumeEffects() {
 	    $("#player_volume").mouseenter(function(){
             $("#volumeControl").fadeIn(200);
+        });
+        $("#player_volume").mouseleave(function(){
             if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
             volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
         });
@@ -295,7 +299,8 @@
             if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
         });
         $("#volumeControl").mouseleave(function(){
-            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',1200);
+            if(volumeControlTimeout) clearTimeout(volumeControlTimeout);
+            volumeControlTimeout = setTimeout('$("#volumeControl").fadeOut(200);',600);
         });
 	}
 	
@@ -438,6 +443,12 @@
 						} else {
 							$('#addToFavoritesBtn').removeClass('selected');
 						}
+						
+						$('#player_shuffle').toggleClass('active',Boolean(request.shuffle));
+						$('#player_crossfade').toggleClass('active',Boolean(request.crossfade));
+						$('#player_loop').toggleClass('active',Boolean(request.repeat));
+						$('#player_loop').toggleClass('one',(repeatMap[request.repeat] == 'REPEAT_ONE'));
+						
 						$('#player_play_pause').removeAttr('disabled');
 						$('#player_play_pause').removeClass('disabled');
 						$('#albumart').removeClass('hidden');

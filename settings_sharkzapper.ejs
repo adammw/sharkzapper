@@ -4,9 +4,21 @@
         <legend>Appearance</legend>
         <ul class="checkbox_wrapper">
             <li>
+                <input id="settings_sharkzapper_showQueueButtons" type="checkbox" tabindex="" name="settings_sharkzapper_showQueueButtons"
+                <% if (sharkzapperSettings.showQueueButtons) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showQueueButtons">Show Queue Buttons (Shuffle/Repeat/Crossfade) on top of Album Art</label>
+                <div class="clear"></div>
+            </li>
+            <li>
                 <input id="settings_sharkzapper_showQueuePosition" type="checkbox" tabindex="" name="settings_sharkzapper_showQueuePosition"
                 <% if (sharkzapperSettings.showQueuePosition) { %>checked="checked"<% } %>>
-                <label class="value label" for="settings_sharkzapper_showQueuePosition">Show Queue Position on top of Album Art.</label>
+                <label class="value label" for="settings_sharkzapper_showQueuePosition">Show Queue Position on top of Album Art</label>
+                <div class="clear"></div>
+            </li>
+            <li>
+                <input id="settings_sharkzapper_showPlaybackButtons" type="checkbox" tabindex="" name="settings_sharkzapper_showPlaybackButtons"
+                <% if (sharkzapperSettings.showPlaybackButtons) { %>checked="checked"<% } %>>
+                <label class="value label" for="settings_sharkzapper_showPlaybackButtons">Show Playback Buttons (Previous/Play/Next)</label>
                 <div class="clear"></div>
             </li>
             <li>

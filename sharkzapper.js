@@ -123,6 +123,9 @@ function inject_sharkzapper() {
 					                "isPaused": GS.player.isPaused,\
 					                "isMuted": GS.player.getIsMuted(),\
 					                "volume": GS.player.getVolume(),\
+					                "shuffle": GS.player.getShuffle(),\
+					                "repeat": GS.player.getRepeat(),\
+					                "crossfade": GS.player.getCrossfadeEnabled()\
 				                };\
 				                if (GS.player.currentSong) {\
 					                gs_status.urls = {"song": GS.player.currentSong.toUrl()};\

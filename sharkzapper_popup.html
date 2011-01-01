@@ -29,7 +29,8 @@
 	.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position { display: none !important; }
 	.fltlft { float: left; }
 	.fltrht { float: right; }
-	#player_controls_playback { float: none; }
+	#thumbnail { overflow: hidden; }
+	#player_controls_right, #player_controls_playback { float: none; }
 	body.notification:not(.notPlaying) #albumart {
 	    height: 100px;
 	}
@@ -48,6 +49,30 @@
 	    opacity: 0.96;
 	    height: 40px;
    	    -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
+   	    -webkit-transition-delay: 0;
+    }
+    #player_controls_right {
+        margin-top: -40px;
+        opacity: 0.02;
+        z-index: 20000;
+        position: absolute;
+        width: 100px;
+        height: 32px;
+        overflow: hidden;
+        background: url(http://static.a.gs-cdn.net/webincludes/css/images/player/controls.png) no-repeat top right;
+        -webkit-transition-duration: 500ms;
+   	    -webkit-transition-delay: 500ms;
+    }
+    #player_controls_right button {
+        margin-top: -4px;
+    }
+    #player_controls_right:first-child {
+        padding-left: 5px;
+    }
+    #thumbnail:hover #player_controls_right {
+        opacity: 0.96;
+        margin-top: 0;
+        -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
    	    -webkit-transition-delay: 0;
     }
     body #songDetails div.scrollable {
@@ -524,6 +549,11 @@
 	</div>
 	<div id="bufferinglogo" class="hidden"></div>
 	<div id="thumbnail">
+	    <div id="player_controls_right">
+    	    <button id="player_shuffle" disabled="disabled" class="player_control" title="Shuffle Songs"></button>
+    	    <button id="player_loop" disabled="disabled" class="player_control" title="Loop Songs"></button>
+    	    <button id="player_crossfade" disabled="disabled" class="player_control" title="Crossfade Between Songs"></button>
+	    </div>
 	    <div id="queue_position" class="hidden">
 	        <span id="queue_current_position"></span>
 	        <span id="queue_position_separator">/</span>

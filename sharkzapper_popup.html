@@ -379,6 +379,12 @@
 		getSetting("showSearchBox",function(showSearchBox) {
             $('#search').toggleClass('hidden',!showSearchBox);
         });
+        getSetting("showQueueButtons",function(showQueueButtons) {
+            $('#player_controls_right').toggleClass('hidden',!showQueueButtons);
+        });
+        getSetting("showPlaybackButtons",function(showPlaybackButtons) {
+            $('#player_controls_playback').toggleClass('hidden',!showPlaybackButtons);
+        });
         
         // Volume Control effects
         getSetting("showVolumeControlOnHover",function(showVolumeControlOnHover) {
@@ -553,6 +559,8 @@
 			            $('#volumeControl').hide();
 			            $("#player_volume,#volumeControl").unbind('mouseenter').unbind('mouseleave');
 			        }
+			        $('#player_controls_right').toggleClass('hidden',!request.settings.showQueueButtons);
+			        $('#player_controls_playback').toggleClass('hidden',!request.settings.showPlaybackButtons);
 			        break;
 			}		
 		}

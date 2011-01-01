@@ -26,9 +26,9 @@
 	var interactionPopup;
 	var interactionPopupOpen = false;
 	var lastSong = {};
-	var settingsVersion = 6;
+	var settingsVersion = 7;
 	var contextMenu = {};
-	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true}; 
+	var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true, "showAlbumArt": true}; 
 	
 	// Create settings with defaults
 	if (!localStorage.settings || localStorage.settingsVersion < settingsVersion) {

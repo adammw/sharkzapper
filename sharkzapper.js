@@ -359,6 +359,7 @@ function inject_sharkzapper() {
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showSearchBox = $("#settings_sharkzapper_showSearchBox").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showQueueButtons = $("#settings_sharkzapper_showQueueButtons").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showPlaybackButtons = $("#settings_sharkzapper_showPlaybackButtons").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showAlbumArt = $("#settings_sharkzapper_showAlbumArt").is(":checked");\
                                         sharkzapper_post_message({"command":"settingsUpdate","settings":GS.Controllers.Page.SettingsController.instance().sharkzapperSettings});\
                                         $("#settings_sharkzapper .buttons .status").addClass("success");\
                                     });\

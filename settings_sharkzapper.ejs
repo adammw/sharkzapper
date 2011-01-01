@@ -4,6 +4,12 @@
         <legend>Appearance</legend>
         <ul class="checkbox_wrapper">
             <li>
+                <input id="settings_sharkzapper_showAlbumArt" type="checkbox" tabindex="" name="settings_sharkzapper_showAlbumArt"
+                <% if (sharkzapperSettings.showAlbumArt) { %>checked="checked"<% } %> onchange="if($(this).is(':checked')){$('#settings_sharkzapper_showQueueButtons').removeAttr('disabled');} else {$('#settings_sharkzapper_showQueueButtons').attr('disabled','disabled');}">
+                <label class="value label" for="settings_sharkzapper_showAlbumArt">Show Album Art</label>
+                <div class="clear"></div>
+            </li>
+            <li>
                 <input id="settings_sharkzapper_showQueueButtons" type="checkbox" tabindex="" name="settings_sharkzapper_showQueueButtons"
                 <% if (sharkzapperSettings.showQueueButtons) { %>checked="checked"<% } %>>
                 <label class="value label" for="settings_sharkzapper_showQueueButtons">Show Queue Buttons (Shuffle/Repeat/Crossfade) on top of Album Art</label>

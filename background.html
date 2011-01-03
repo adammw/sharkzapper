@@ -204,7 +204,7 @@
 			    // however we also set the title of the browser action to the song / artist name
 			    case 'statusUpdate':
 			        if (lastSong && request.currentSong && request.currentSong.SongName == lastSong.SongName && request.currentSong.ArtistName == lastSong.ArtistName && request.currentSong.AlbumName == lastSong.AlbumName) return;
-			        if (request.currentSong) {
+			        if (request.currentSong && request.currentSong.SongName) {
     			        chrome.browserAction.setTitle({"title":request.currentSong.SongName + "\n" + request.currentSong.ArtistName});
     			        if (window.webkitNotifications && getSetting("showNotificationOnSongChange")) {
     			            for (i in songNotifications) {

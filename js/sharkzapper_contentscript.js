@@ -1,7 +1,12 @@
 /*
- * sharkZapper is Copyright (C) 2010 Adam Malcontenti-Wilson <adman.com@gmail.com>
+ * sharkzapper_contentscript.js
+ * This is the content script for sharkZapper which works on Grooveshark's website to inject our listener
+ *
+ * sharkZapper is Copyright (C) 2010-2011 Adam Malcontenti-Wilson <adman.com@gmail.com>
  * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
- * You may not create deriviate versions of the software without written permission of the author.
+ * You may not create derivative versions of the software without written permission of the author.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * 
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.

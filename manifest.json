@@ -4,17 +4,17 @@
 
 	"description": "Control Grooveshark HTML5 Player and see what's playing",
 	"icons": {
-		"16": "icon_16.png",
-		"22": "icon_22.png",
-		"32": "icon_32.png",
-		"48": "icon_48.png",
-		"64": "icon_64.png",
-		"96": "icon_96.png",
-		"128": "icon_128.png"
+		"16": "img/icon_16.png",
+		"22": "img/icon_22.png",
+		"32": "img/icon_32.png",
+		"48": "img/icon_48.png",
+		"64": "img/icon_64.png",
+		"96": "img/icon_96.png",
+		"128": "img/icon_128.png"
 	},
 
 	"browser_action": {
-		"default_icon": "icon_19.png",
+		"default_icon": "img/icon_19.png",
 		"default_popup": "sharkzapper_popup.html"
 	},
 	"permissions": [

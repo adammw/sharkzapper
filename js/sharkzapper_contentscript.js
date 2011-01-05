@@ -13,7 +13,7 @@
  */
 var recieveMessage, sendRequest, inject, tabnavListener;
 var debug = false;
-var thisVersion = '1.3.8';
+var thisVersion = '1.3.9';
 function inject_sharkzapper() {
     if(debug) console.log("injecting sharkzapper version "+thisVersion);
     sendRequest({"command": "getTabCount"});

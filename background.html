@@ -81,8 +81,8 @@
 	// Inject our content scripts into the first grooveshark tab (should not be required after plugin is loaded due to manifest)
 	function inject_scripts() {
 		if (gsTabs.length > 0) {
-			chrome.tabs.executeScript(gsTabs[0], {'file':'jquery-1.4.4.min.js'});		
-			chrome.tabs.executeScript(gsTabs[0], {'file':'sharkzapper.js'});
+			chrome.tabs.executeScript(gsTabs[0], {'file':'js/jquery-1.4.4.min.js'});		
+			chrome.tabs.executeScript(gsTabs[0], {'file':'js/sharkzapper_contentscript.js'});
 			if (debug) console.log('Injected scripts into existing tab #' + gsTabs[0]);
 			
 			// Add our context menu

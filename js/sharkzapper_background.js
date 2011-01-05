@@ -192,7 +192,7 @@ chrome.extension.onRequest.addListener(
 			// This is sent from a popup to "pin" the popup by creating a long-living HTML notification
 			case 'pinPopup':
 			    if (!pinnedPopupOpen && window.webkitNotifications) {
-			        pinnedPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_popup.html#notification');
+			        pinnedPopup = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('html/sharkzapper_popup.html#notification'));
 			        pinnedPopup.ondisplay = function(){pinnedPopupOpen = true;};
 			        pinnedPopup.onclose = function(){pinnedPopupOpen = false;};
 			        pinnedPopup.show();
@@ -224,7 +224,7 @@ chrome.extension.onRequest.addListener(
             // We then recreate this popup as a notification to ensure the user sees it
             case 'interactionTimePrompt':
                 if (!interactionPopupOpen && window.webkitNotifications) {
-                    interactionPopup = window.webkitNotifications.createHTMLNotification('sharkzapper_interactiontime.html');
+                    interactionPopup = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('html/sharkzapper_interactiontime.html'));
                     interactionPopup.ondisplay = function(){interactionPopupOpen = true;};
 			        interactionPopup.onclose = function(){interactionPopupOpen = false;};
 			        interactionPopup.show();

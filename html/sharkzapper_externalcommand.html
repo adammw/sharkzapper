@@ -1,9 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
 <!--
 /*
- * sharkZapper is Copyright (C) 2010 Adam Malcontenti-Wilson <adman.com@gmail.com>
+ * sharkzapper_externalcommand.html
+ * This is the external command page for sharkZapper which can be navigated to by an external process to trigger certain commands
+ *
+ * sharkZapper is Copyright (C) 2010-2011 Adam Malcontenti-Wilson <adman.com@gmail.com>
  * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
- * You may not create deriviate versions of the software without written permission of the author.
+ * You may not create derivative versions of the software without written permission of the author.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * 
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
@@ -21,6 +26,7 @@
 		    chrome.extension.sendRequest(request);
 	    }
 	    
+	    // These are the allowed actions
 	    switch (location.hash) {
 	        case '#togglePlayPause':
 	            sendMessage({"command":"togglePlayPause"});
@@ -34,6 +40,8 @@
 	        default: 
 	            console.error('action',location.hash,'not recognised');
 	    }
+	    
+	    // We automatically close the window
         if (!debug) window.close();
     </script>
 </head>

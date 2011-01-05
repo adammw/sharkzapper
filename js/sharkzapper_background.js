@@ -13,6 +13,7 @@
  */
 // Global variables
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
+var viewsDir = 'views/';
 var gsTabs = [];
 var gsTabContentScriptLoaded = false;
 var notifications = [];
@@ -239,7 +240,7 @@ chrome.extension.onRequest.addListener(
             case 'fetchView':
                 if (!request.viewName) { console.error("Cannot fetch view - no viewName specified"); }
                 var xhr = new XMLHttpRequest();
-                xhr.open("GET",chrome.extension.getURL(request.viewName + '.ejs'));
+                xhr.open("GET",chrome.extension.getURL(viewsDir + request.viewName + '.ejs'));
                 xhr.onreadystatechange= function(request){
                     return function() {
                         if (xhr.readyState == 4) {
@@ -249,7 +250,7 @@ chrome.extension.onRequest.addListener(
                                 response.view = xhr.responseText;
                                 sendRequest(response, 'tab');
                             } else {XMLHttpRequest
-                                console.error("Could not fetch "+request.viewName + '.ejs',xhr);
+                                console.error("Could not fetch "+viewsDir+request.viewName + '.ejs',xhr);
                             }
                         }
                     }

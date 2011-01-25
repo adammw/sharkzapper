@@ -14,9 +14,17 @@
 // Global variables
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var viewsDir = 'views/';
+var socketHost = 'localhost';
+var socketPort = 8080;
+var socketCallbacks = {};
+var socketPendingMessages = [];
+var socketSequence = 1;
+var socketVersion = 1;
+var sharkId = 0;
 var gsTabs = [];
 var gsTabContentScriptLoaded = false;
 var notifications = [];
+var socket = null;
 var songNotifications = [];
 var debug = false;
 var debugStatusUpdate = false;
@@ -24,6 +32,7 @@ var pinnedPopup;
 var pinnedPopupOpen = false;
 var interactionPopup;
 var interactionPopupOpen = false;
+var lastStatus = {};
 var lastSong = {};
 var settingsVersion = 7;
 var contextMenu = {};
@@ -202,6 +211,9 @@ chrome.extension.onRequest.addListener(
 		    // This is sent from a content script many times a second. Most processing for this is done in the popup,
 		    // however we also set the title of the browser action to the song / artist name
 		    case 'statusUpdate':
+		        socket_send_update(request);
+                lastStatus = request;
+                
 		        if (lastSong && request.currentSong && request.currentSong.SongName == lastSong.SongName && request.currentSong.ArtistName == lastSong.ArtistName && request.currentSong.AlbumName == lastSong.AlbumName) return;
 		        if (request.currentSong && request.currentSong.SongName) {
 			        chrome.browserAction.setTitle({"title":request.currentSong.SongName + "\n" + request.currentSong.ArtistName});
@@ -337,6 +349,10 @@ function contextmenu_callback(info, tab) {
         }
     }
     if (debug) console.log("Context menu clicked",action,info,tab);
+    do_external_action(action);
+}
+
+function do_external_action(action) {
     switch (action) {
         case 'prev':
             sendRequest({command:"prevSong"},'tab');
@@ -348,6 +364,137 @@ function contextmenu_callback(info, tab) {
             sendRequest({command:"nextSong"},'tab');
             break;
     }
+}
+
+function load_socketio() {
+    var scriptEl = document.createElement('script');
+    scriptEl.id = 'socket.io';
+    scriptEl.src = '../js/socket.io-0.6.min.js';
+    scriptEl.onload = load_socket;
+    document.getElementsByTagName('head')[0].appendChild(scriptEl);
+}
+function load_socket() {
+    if (debug) { console.log('socket.io loaded'); }
+    if (!window.io) { load_socketio(); return; }
+    if (socket != null && (socket.connected || socket.connecting)) { socket.disconnect(); return; }
+    socket = new io.Socket(socketHost,{port: socketPort, rememberTransport: false});
+    socket.on('message', socket_handle_message)
+    socket.on('connect', socket_handle_connect);
+    socket.on('connect_failed', socket_handle_connect_failed);
+    socket.on('disconnect', socket_handle_disconnect);
+    socket.connect();
+}
+function socket_send_update(status) {
+    if (!socket || !socket.connected) { return; } //ignore when not connected
+    if (!status) {
+        var params = {currentSong: {}, isMuted: lastStatus.isMuted, isPaused: lastStatus.isPaused, isPlaying: lastStatus.isPlaying};
+        var paramsSet = false;
+        for (i in lastSong) {
+            params.currentSong[i] = lastSong[i];
+            paramsSet = true;
+        }
+        params = (paramsSet) ? params : {currentSong: null};
+        socket_send_event('statusUpdate',params);
+    } else if (status.currentSong) {
+        if (status.currentSong != lastSong) {
+            var params = {currentSong: {}, isMuted: lastStatus.isMuted, isPaused: lastStatus.isPaused, isPlaying: lastStatus.isPlaying};
+            var paramsChanged = false;
+            for (i in status.currentSong) {
+                if (typeof status.currentSong[i] == 'object') { continue; }
+                if (status.currentSong[i] != lastSong[i]) {
+                    params.currentSong[i] = status.currentSong[i];
+                    paramsChanged = true;
+                }
+            }
+            if (paramsChanged) {
+                params.currentSong.CoverArtFilename = status.currentSong['CoverArtFilename'];
+                socket_send_event('statusUpdate',params);
+            }
+        }
+    } else {
+        socket_send_event('statusUpdate',{currentSong: null, isMuted: status.isMuted, isPaused: status.isPaused, isPlaying: status.isPlaying});
+    }
+}
+function socket_send_event(event, params) {
+    if (socket && socket.connected) {
+        var message = {event: event, sequence: socketSequence};
+        if (params) { message.params = params; }
+        socket.send(JSON.stringify(message));
+        socketSequence++;
+    }
+}
+function socket_send_command(method, params, successCallback, failCallback) {
+    if (socket && socket.connected) {
+        var message = {method: method};
+        var callbacks = {};
+        if (params) { message.params = params; }
+        if (successCallback && typeof successCallback == 'function') {
+            callbacks.success = successCallback;
+        }
+        if (failCallback && typeof failCallback == 'function') {
+            callbacks.fail = successCallback;
+        }
+        if (callbacks.success || callbacks.fail) {
+            message.sequence = socketSequence;
+            socketCallbacks[socketSequence] = callbacks;
+            socketSequence++;
+        }
+        socket.send(JSON.stringify(message));
+    } else if (!socket || !socket.connecting) {
+        socketPendingMessages.push({method: method, params: params, successCallback: successCallback, failCallback:failCallback});
+        load_socket();
+    }
+}
+function socket_handle_message(data) {
+    try {
+        var data = JSON.parse(data);
+    } catch(e) {
+        console.error('Could not parse JSON:',e,data);
+        return;
+    }
+    if (data.event) {
+        switch (data.event) {
+            case 'clientConnected':
+                socket_send_update();
+                break;
+            case 'command':
+                if (data.params.command) {
+                    do_external_action(data.params.command);
+                }
+                break;
+            default:
+                console.warn('Unhandled Service Event',data.event);
+                break;
+        }
+    } else if (data.sequence && socketCallbacks[data.sequence] && data.fault && socketCallbacks[data.sequence].fault) {
+        socketCallbacks[data.sequence].fault(data.fault);
+    } else if (data.sequence && socketCallbacks[data.sequence] && data.result && socketCallbacks[data.sequence].success) {
+        socketCallbacks[data.sequence].success(data.result);
+    } else if (data.fault) {
+        console.warn('Unhandled Service Fault',data.fault);
+    } else if (data.result) {
+        console.warn('Unhandled Service Result',data.result);
+    }
+    if (data.sequence && socketCallbacks[data.sequence]) {
+        delete socketCallbacks[data.sequence];
+    }
+}
+function socket_handle_connect() {
+    console.log('socket connected');
+    while (socketPendingMessages.length) {
+        var pendingMsg = socketPendingMessages.pop();sharkId
+        socket_send_command(pendingMsg.method, pendingMsg.params, pendingMsg.successCallback, pendingMsg.failCallback);
+    }
+    socket_send_command('bindToService',null,function(result) {
+        if (result) { sharkId = result; }
+        sendRequest({command: 'mobileBinded', sharkId: sharkId}, 'tab');
+    });
+}
+function socket_handle_disconnect() {
+    
+}
+function socket_handle_connect_failed(e) {
+    console.error('Socket connect failed',e);
 }
 
 // Inject all currently open tabs with our content script

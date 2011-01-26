@@ -14,7 +14,7 @@
 // Global variables
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var viewsDir = 'views/';
-var socketHost = 'localhost';
+var socketHost = 'sharkzapper.co.cc';
 var socketPort = 8080;
 var socketCallbacks = {};
 var socketPendingMessages = [];

@@ -34,9 +34,9 @@ var interactionPopup;
 var interactionPopupOpen = false;
 var lastStatus = {};
 var lastSong = {};
-var settingsVersion = 7;
+var settingsVersion = 8;
 var contextMenu = {};
-var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true, "showAlbumArt": true}; 
+var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true, "showAlbumArt": true, "enableSharkzapperMobile": false}; 
 
 // Create settings with defaults
 if (!localStorage.settings || localStorage.settingsVersion < settingsVersion) {
@@ -288,6 +288,11 @@ chrome.extension.onRequest.addListener(
             // This is sent from a content script when it updates settings and we save the settings to localStorage
             case 'settingsUpdate':
                 localStorage.settings = JSON.stringify(request.settings);
+                if (getSetting('enableSharkzapperMobile') == true) {
+                    load_socket();
+                } else {
+                    kill_socket();
+                }
                 if (debug) console.log ("Saved Settings!",request.settings);
                 break;
                 
@@ -373,6 +378,9 @@ function load_socketio() {
     scriptEl.onload = load_socket;
     document.getElementsByTagName('head')[0].appendChild(scriptEl);
 }
+function kill_socket() {
+    if (socket != null) { socket.disconnect(); socket = null;}
+}
 function load_socket() {
     if (debug) { console.log('socket.io loaded'); }
     if (!window.io) { load_socketio(); return; }
@@ -387,20 +395,29 @@ function load_socket() {
 function socket_send_update(status) {
     if (!socket || !socket.connected) { return; } //ignore when not connected
     if (!status) {
-        var params = {currentSong: {}, isMuted: lastStatus.isMuted, isPaused: lastStatus.isPaused, isPlaying: lastStatus.isPlaying};
+        var params = {currentSong: {}};
+        if (lastStatus.hasOwnProperty('isMuted')) params.isMuted = lastStatus.isMuted;
+        if (lastStatus.hasOwnProperty('isPaused')) params.isPaused = lastStatus.isPaused;
+        if (lastStatus.hasOwnProperty('isPlaying')) params.isPlaying = lastStatus.isPlaying;
+        if (lastStatus.hasOwnProperty('shuffle')) params.shuffle = lastStatus.shuffle;
         var paramsSet = false;
         for (i in lastSong) {
             params.currentSong[i] = lastSong[i];
             paramsSet = true;
         }
-        params = (paramsSet) ? params : {currentSong: null};
+        if (!paramsSet) { params.currentSong = null; }
         socket_send_event('statusUpdate',params);
     } else if (status.currentSong) {
-        if (status.currentSong != lastSong) {
-            var params = {currentSong: {}, isMuted: lastStatus.isMuted, isPaused: lastStatus.isPaused, isPlaying: lastStatus.isPlaying};
+        if (status.currentSong != lastSong || lastStatus && (status.isMuted != lastStatus.isMuted || status.isPaused != lastStatus.isPaused || status.isPlaying != lastStatus.isPlaying || status.shuffle != lastStatus.shuffle)) {
+            var params = {currentSong: {}};
             var paramsChanged = false;
+            if (status.isMuted != lastStatus.isMuted) { params.isMuted = status.isMuted; paramsChanged = true; }
+            if (status.isPaused != lastStatus.isPaused) { params.isPaused = status.isPaused; paramsChanged = true;} 
+            if (status.isPlaying != lastStatus.isPlaying) { params.isPlaying = status.isPlaying; paramsChanged = true;}
+            if (status.shuffle != lastStatus.shuffle) { params.shuffle = status.shuffle; paramsChanged = true;}
             for (i in status.currentSong) {
-                if (typeof status.currentSong[i] == 'object') { continue; }
+                //if (typeof status.currentSong[i] == 'object') { continue; }
+                if (i == "fanbase") {continue;}
                 if (status.currentSong[i] != lastSong[i]) {
                     params.currentSong[i] = status.currentSong[i];
                     paramsChanged = true;
@@ -419,6 +436,7 @@ function socket_send_event(event, params) {
     if (socket && socket.connected) {
         var message = {event: event, sequence: socketSequence};
         if (params) { message.params = params; }
+        if (debug) console.log("sharkzapper:",">S>",message.event, message);
         socket.send(JSON.stringify(message));
         socketSequence++;
     }
@@ -439,6 +457,7 @@ function socket_send_command(method, params, successCallback, failCallback) {
             socketCallbacks[socketSequence] = callbacks;
             socketSequence++;
         }
+        if (debug) console.log("sharkzapper:",">S>",message.method, message);
         socket.send(JSON.stringify(message));
     } else if (!socket || !socket.connecting) {
         socketPendingMessages.push({method: method, params: params, successCallback: successCallback, failCallback:failCallback});
@@ -452,6 +471,7 @@ function socket_handle_message(data) {
         console.error('Could not parse JSON:',e,data);
         return;
     }
+    if (debug) console.log("sharkzapper:","<S<", data);
     if (data.event) {
         switch (data.event) {
             case 'clientConnected':
@@ -480,7 +500,7 @@ function socket_handle_message(data) {
     }
 }
 function socket_handle_connect() {
-    console.log('socket connected');
+    if (debug) console.log('socket connected');
     while (socketPendingMessages.length) {
         var pendingMsg = socketPendingMessages.pop();sharkId
         socket_send_command(pendingMsg.method, pendingMsg.params, pendingMsg.successCallback, pendingMsg.failCallback);
@@ -499,3 +519,8 @@ function socket_handle_connect_failed(e) {
 
 // Inject all currently open tabs with our content script
 get_gs_tab(inject_scripts); 
+
+// Open socket connection if sharkzapperMobile is enabled
+if (getSetting('enableSharkzapperMobile') == true) {
+    load_socket();
+}

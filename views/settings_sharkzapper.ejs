@@ -68,6 +68,12 @@
                 <label class="value label" for="settings_sharkzapper_showNotificationOnSongChange">Show notification on Song Change</label>
                 <div class="clear"></div>
             </li>
+            <li>
+                <input id="settings_sharkzapper_enableSharkzapperMobile" type="checkbox" tabindex="" name="settings_sharkzapper_enableSharkzapperMobile"
+                <% if (sharkzapperSettings.enableSharkzapperMobile) { %>checked="checked"<% } %> onchange="if($(this).is(':checked') && !GS.lightbox.isOpen) { $(this).removeAttr('checked'); GS.lightbox.open('sharkzapperMobileWarning'); }">
+                <label class="value label" for="settings_sharkzapper_enableSharkzapperMobile">Enable sharkZapper Mobile</label>
+                <div class="clear"></div>
+            </li>
         </ul>
     </fieldset>
     <div class="buttons left">

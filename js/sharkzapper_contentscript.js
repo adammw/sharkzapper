@@ -81,6 +81,7 @@ function inject_sharkzapper() {
             case 'setShuffle':
             case 'setCrossfadeEnabled':
             case 'setRepeat':
+            case 'mobileBinded':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -119,6 +120,7 @@ function inject_sharkzapper() {
     inject.id = 'sharkzapperInject'; 
     inject.className = 'version_'+thisVersion;
     inject.innerHTML = '    var sharkzapper_debug = false;\
+                            var sharkzapper_mobile_id = null;\
                             function sharkzapper_update_status() {\
                                 gs_status = {\
 					                "command": "statusUpdate",\
@@ -259,6 +261,9 @@ function inject_sharkzapper() {
                                             else if (request.repeatMode === GS.player.REPEAT_ONE) $("#player_loop").removeClass("all").addClass("one").addClass("active");\
                                             else request.repeatMode === GS.player.REPEAT_NONE && $("#player_loop").removeClass("one").addClass("none").removeClass("active");\
 	                                        break;\
+                                        case "mobileBinded":\
+                                            sharkzapper_mobile_id = request.sharkId;\
+                                            break;\
 							        }\
 						        }\
 					        }\
@@ -365,6 +370,7 @@ function inject_sharkzapper() {
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showQueueButtons = $("#settings_sharkzapper_showQueueButtons").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showPlaybackButtons = $("#settings_sharkzapper_showPlaybackButtons").is(":checked");\
                                         GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.showAlbumArt = $("#settings_sharkzapper_showAlbumArt").is(":checked");\
+                                        GS.Controllers.Page.SettingsController.instance().sharkzapperSettings.enableSharkzapperMobile = $("#settings_sharkzapper_enableSharkzapperMobile").is(":checked");\
                                         sharkzapper_post_message({"command":"settingsUpdate","settings":GS.Controllers.Page.SettingsController.instance().sharkzapperSettings});\
                                         $("#settings_sharkzapper .buttons .status").addClass("success");\
                                     });\
@@ -374,6 +380,28 @@ function inject_sharkzapper() {
                                 this.element.find("#page_nav_vertical #settings_sections li.pane_sharkzapper a").addClass("active");\
                                 $(window).resize();\
                             };\
+                            $("#lightbox_wrapper .lbcontainer").parent().append("<div class=\\"lbcontainer sharkzapperMobileWarning\\" style=\\"display:none;\\"></div>");\
+                            \
+                            GS.Controllers.BaseController.extend("GS.Controllers.Lightbox.SharkzapperMobileWarningController", {\
+                                onDocument: false\
+                            }, {\
+                                init: function () {\
+                                    this.update()\
+                                },\
+                                update: function () {\
+                                    console.log("lb.mobilewarning.init");\
+                                    this.element.html(this.view("/lightbox/sharkzapperMobileWarning"))\
+                                },\
+                                ".submit click": function (a, b) {\
+                                    console.log(".submit.click mobile warning");\
+                                    $("#settings_sharkzapper_enableSharkzapperMobile").attr("checked","checked");\
+                                    b.preventDefault();\
+                                    b.stopPropagation();\
+                                    GS.lightbox.close()\
+                                }\
+                            });\
+                            \
+                            sharkzapper_post_message({"command":"fetchView","viewName":"lightbox_sharkzapperMobileWarning"});\
                             if (location.hash == "#/settings/sharkzapper") GS.Controllers.Page.SettingsController.instance().index("sharkzapper");\
                				sharkzapper_post_message({"command":"contentScriptInit"});';
     document.body.appendChild(inject);

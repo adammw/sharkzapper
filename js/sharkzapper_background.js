@@ -275,6 +275,9 @@ chrome.extension.onRequest.addListener(
                 gsTabContentScriptLoaded = true;
                 if (!localStorage.settings) return;
                 sendRequest({"command":"settingsUpdate","settings":JSON.parse(localStorage.settings)},'tab');
+                if (sharkId && socket && socket.connected) {
+                    sendRequest({command: 'mobileBinded', sharkId: sharkId}, 'tab');
+                }
                 break;
             
             // This is sent to get all the settings
@@ -511,7 +514,7 @@ function socket_handle_connect() {
     });
 }
 function socket_handle_disconnect() {
-    
+    sendRequest({command: 'mobileUnbinded'}, 'tab');
 }
 function socket_handle_connect_failed(e) {
     console.error('Socket connect failed',e);

@@ -82,6 +82,7 @@ function inject_sharkzapper() {
             case 'setCrossfadeEnabled':
             case 'setRepeat':
             case 'mobileBinded':
+            case 'mobileUnbinded':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -263,6 +264,11 @@ function inject_sharkzapper() {
 	                                        break;\
                                         case "mobileBinded":\
                                             sharkzapper_mobile_id = request.sharkId;\
+                                            $("#settings_sharkzapper_mobileStatus").text("Connected. Your SharkZapper ID is: " + request.sharkId);\
+                                            break;\
+                                        case "mobileUnbinded":\
+                                            sharkzapper_mobile_id = null;\
+                                            $("#settings_sharkzapper_mobileStatus").text("Not Connected");\
                                             break;\
 							        }\
 						        }\
@@ -350,6 +356,7 @@ function inject_sharkzapper() {
                             GS.Controllers.Page.SettingsController.instance().showSharkzapper = function() {\
                                 if ($.View.preCached._gs_views_settings_sharkzapper_ejs) {\
                                     this.element.find("#page_pane").html(this.view("sharkzapper"));\
+                                    $("#settings_sharkzapper_mobileStatus").text((sharkzapper_mobile_id) ? "Connected. Your SharkZapper ID is: " + sharkzapper_mobile_id : "Not Connected");\
                                     $("#settings_sharkzapper").submit(function(e){\
                                         e.preventDefault();\
                                         if (!GS.Controllers.Page.SettingsController.instance().sharkzapperSettings) {\

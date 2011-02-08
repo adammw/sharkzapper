@@ -1,6 +1,6 @@
 body { 
 	min-width: 300px;
-	min-height: 160px;
+	min-height: 120px;
 	-webkit-user-select: none;
 	cursor: default;
 }
@@ -208,6 +208,12 @@ body.noAlbumArt #lowerControls {
 }
 #player_times { 
 	width: auto;
+}
+#player_elapsed {
+   padding-right: 3px;
+}
+#player_duration {
+   padding-left: 3px;
 }
 
 #queue_position {

@@ -19,6 +19,7 @@ function inject_sharkzapper() {
     sendRequest({"command": "getTabCount"});
 
     function receiveMessage(e) {
+        if (e.origin == "chrome-extension://nhgaiigggjocbdkmoicbaanliddgepcl") { recieveRequest(JSON.parse(e.data)); }
         if (e.origin != "http://listen.grooveshark.com") return;
 	    var request = JSON.parse(e.data);
         if (debug) console.log('sharkzapper:', '<(M)C<', request);
@@ -31,6 +32,7 @@ function inject_sharkzapper() {
             case 'interactionTimePrompt':
             case 'fetchView':
             case 'fetchSettings':
+            case 'transferToBackground':
 			    sendRequest(request);
                 break;
             case 'removeListener':
@@ -83,6 +85,7 @@ function inject_sharkzapper() {
             case 'setRepeat':
             case 'mobileBinded':
             case 'mobileUnbinded':
+            case 'restoreQueue':
 			    sendMessage(request);
 			    break;
 		    case 'tabCount':
@@ -122,6 +125,7 @@ function inject_sharkzapper() {
     inject.className = 'version_'+thisVersion;
     inject.innerHTML = '    var sharkzapper_debug = false;\
                             var sharkzapper_mobile_id = null;\
+                            var sharkzapper_restoring_queue = null;\
                             function sharkzapper_update_status() {\
                                 gs_status = {\
 					                "command": "statusUpdate",\
@@ -152,6 +156,23 @@ function inject_sharkzapper() {
                                 } else {\
                                     gs_status.isRadio = false;\
                                 }\
+                                if (sharkzapper_restoring_queue != null) {\
+                                    if (sharkzapper_restoring_queue.songIds.length != GS.player.getCurrentQueue().songs.length) {\
+                                        return;\
+                                    } else {\
+                                        if (GS.player.currentSong) {\
+                                            if (GS.player.currentSong.queueSongID != sharkzapper_restoring_queue.queueSongId) {\
+                                                GS.player.playSong(sharkzapper_restoring_queue.queueSongId);\
+                                                return;\
+                                            } else if (gs_status.playbackStatus.position <= sharkzapper_restoring_queue.position) {\
+                                                GS.player.seekTo(sharkzapper_restoring_queue.position);\
+                                                return;\
+                                            } else {\
+                                                sharkzapper_restoring_queue = null;\
+                                            }\
+                                        }\
+                                    }\
+                                }\
 				                sharkzapper_post_message(gs_status);\
 		                    }\
 			                function sharkzapper_post_message(message) {\
@@ -169,6 +190,17 @@ function inject_sharkzapper() {
                                 } else {\
                                     GS.Controllers.Page.SettingsController.instance().showSharkzapper();\
                                 }\
+                            }\
+                            function sharkzapper_transfer_to_background() {\
+                                for (var songs = GS.player.getCurrentQueue().songs, songIds = [], d = 0; d < songs.length; d++) songIds.push(songs[d].SongID);\
+                                var status = GS.player.getPlaybackStatus();\
+                                sharkzapper_post_message({\
+                                    command:"transferToBackground",\
+                                    songIds: songIds,\
+                                    queueSongId: status.activeSong.queueSongID,\
+                                    position: status.position\
+                                });\
+                                window.close();\
                             }\
 					        function sharkzapper_handle_message(e) {\
 						        if (e.origin == "http://listen.grooveshark.com") {\
@@ -269,6 +301,12 @@ function inject_sharkzapper() {
                                         case "mobileUnbinded":\
                                             sharkzapper_mobile_id = null;\
                                             $("#settings_sharkzapper_mobileStatus").text("Not Connected");\
+                                            break;\
+                                        case "restoreQueue":\
+                                            for (var i=0; i<request.songIds.length; i++) {\
+                                                GS.player.addSongsToQueueAt(request.songIds[i],-1,false);\
+                                            }\
+                                            sharkzapper_restoring_queue = request;\
                                             break;\
 							        }\
 						        }\
@@ -466,7 +504,7 @@ function cleanupDoneListener(e){
     if (debug) console.log("got cleanupDone message, inject new:",request.injectNew);
     if (request.injectNew) { inject_sharkzapper(); }
 }
-if (window.location.pathname != "/sidebar.php") {
+if (window.location.pathname != "/sidebar.php" && window.location.pathname != "/pixels.php") {
     var inject = document.getElementById('sharkzapperInject');
     if (inject && (debug || inject.className != 'version_'+thisVersion)) {
         if (debug) console.log('sharkzapper already injected ('+inject.className+'), trying to remove and replace with us! (crosses fingers)');			

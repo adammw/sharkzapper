@@ -280,7 +280,7 @@ chrome.extension.onRequest.addListener(
                         $('body').addClass('notPlaying');
                     }
                     if (request.playbackStatus.activeSong && request.playbackStatus.activeSong.queueSongID  && request.queueLength) {
-						$('#queue_current_position').text(request.playbackStatus.activeSong.queueSongID);
+						$('#queue_current_position').text(request.playbackStatus.activeSong.index + 1);
 						$('#queue_total').text(request.queueLength);
 					} 
 			    }

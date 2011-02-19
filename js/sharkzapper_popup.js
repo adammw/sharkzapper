@@ -199,8 +199,8 @@ chrome.extension.onRequest.addListener(
 						$('#songName, #albumName, #artistName').removeAttr('href');
 					}
 					$('#albumart').attr('alt', request.currentSong.AlbumName);
-					$('#player_elapsed').text(Math.floor(request.playbackStatus.position / 1000 / 60) + ":" + ((request.playbackStatus.position / 1000) % 60).toFixed().pad(2, "0"));
-					$('#player_duration').text(Math.floor(request.playbackStatus.duration / 1000 / 60) + ":" + ((request.playbackStatus.duration / 1000) % 60).toFixed().pad(2, "0"));
+					$('#player_elapsed').text(Math.floor(request.playbackStatus.position / 1000 / 60) + ":" + (Math.floor(request.playbackStatus.position / 1000) % 60).toFixed().pad(2, "0"));
+					$('#player_duration').text(Math.floor(request.playbackStatus.duration / 1000 / 60) + ":" + (Math.floor(request.playbackStatus.duration / 1000) % 60).toFixed().pad(2, "0"));
 					if (request.currentSong.CoverArtFilename) {
 						$('#albumart').attr('src', request.currentSong.artPath + 'm' + request.currentSong.CoverArtFilename);
 					} else {
@@ -280,7 +280,7 @@ chrome.extension.onRequest.addListener(
                         $('body').addClass('notPlaying');
                     }
                     if (request.playbackStatus.activeSong && request.playbackStatus.activeSong.queueSongID  && request.queueLength) {
-						$('#queue_current_position').text(request.playbackStatus.activeSong.queueSongID);
+						$('#queue_current_position').text(request.playbackStatus.activeSong.index + 1);
 						$('#queue_total').text(request.queueLength);
 					} 
 			    }

@@ -123,7 +123,7 @@ $(document).ready(function(){
 	
 	// Add Search form handler
 	$('#search_form').submit(function(){ 
-		sendMessage({"command":"openGSTab", "url":"#/search/all?q=" + $('#searchBox').val()});
+		sendMessage({"command":"openGSTab", "url":"#/search?q=" + $('#searchBox').val()});
 		sendMessage({"command":"performSearch", "query": $('#searchBox').val()});
 	    	$('#searchBox').val(''); $('#searchBox').blur(); return false; 
 	});

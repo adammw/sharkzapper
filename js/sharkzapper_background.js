@@ -75,7 +75,7 @@ function get_gs_tab(success_callback, fail_callback, arg) {
 		gsTabs = [];
 		for (wi in win) {
 			for (ti in win[wi].tabs) {
- 				if(win[wi].tabs[ti].url.indexOf('http://listen.grooveshark.com/')==0) {
+ 				if(win[wi].tabs[ti].url.indexOf('http://grooveshark.com/')==0) {
 					gsTabs.push(win[wi].tabs[ti].id);
  				}
  			}
@@ -104,20 +104,20 @@ function inject_scripts() {
 function open_gs_tab(url) {
 	if (gsTabs.length == 0) {
 		if (url) {
-			chrome.tabs.create({url:'http://listen.grooveshark.com/' + url});
+			chrome.tabs.create({url:'http://grooveshark.com/' + url});
 		} else {
-			chrome.tabs.create({url:'http://listen.grooveshark.com/'});
+			chrome.tabs.create({url:'http://grooveshark.com/'});
 		}
 	} else {
 	    if (url) {
 	        // Ensure that we only update url if it is different
 	        chrome.tabs.get(gsTabs[0], function(url){ return function(tab) {
-	            if (tab && tab.url == 'http://listen.grooveshark.com/' + url) {
+	            if (tab && tab.url == 'http://grooveshark.com/' + url) {
 	                chrome.tabs.update(gsTabs[0], {'selected':true});
-                } else if (tab && tab.url != 'http://listen.grooveshark.com/' + url) {
-                    chrome.tabs.update(gsTabs[0], {'url':'http://listen.grooveshark.com/' + url, 'selected':true});
+                } else if (tab && tab.url != 'http://grooveshark.com/' + url) {
+                    chrome.tabs.update(gsTabs[0], {'url':'http://grooveshark.com/' + url, 'selected':true});
                 } else {
-    				chrome.tabs.create({url:'http://listen.grooveshark.com/' + url});
+    				chrome.tabs.create({url:'http://grooveshark.com/' + url});
 				}
 	        }}(url));
 		} else {
@@ -174,7 +174,7 @@ chrome.extension.onRequest.addListener(
 			    break;
 			
 			// This is sent from the popup to open the current grooveshark tab or create a new one
-			// The url is appended to the end http://listen.grooveshark.com/
+			// The url is appended to the end http://grooveshark.com/
 			case 'openGSTab':
 				get_gs_tab(open_gs_tab,open_gs_tab,request.url);
 				break;
@@ -340,7 +340,7 @@ function sendRequest(request,dest,dontModifySource) {
 			break;
 		case 'tab':
 		    if (backgroundGS) {
-		        backgroundGS.contentWindow.postMessage(JSON.stringify(request),'http://listen.grooveshark.com');
+		        backgroundGS.contentWindow.postMessage(JSON.stringify(request),'http://grooveshark.com');
 		        console.log('sent to iframe');
 		    } else {
 		        if (!gsTabs[0]) { return; }
@@ -406,7 +406,7 @@ function do_external_action(action) {
 function create_background_gs() {
     if (backgroundGS != null) { return; }
     backgroundGS = document.createElement('iframe');
-    backgroundGS.src = 'http://listen.grooveshark.com';
+    backgroundGS.src = 'http://grooveshark.com';
     document.body.innerHTML = '';
     document.body.appendChild(backgroundGS);
 }

@@ -27,7 +27,7 @@
 	"options_page": "html/sharkzapper_options.html",
 	"content_scripts": [
 		{
-			"matches": ["*://listen.grooveshark.com/*"],
+			"matches": ["*://listen.grooveshark.com/*", "*://grooveshark.com/*"],
 			"js": ["js/jquery-1.4.4.min.js", "js/sharkzapper_contentscript.js"],
 			"all_frames": true
 		}

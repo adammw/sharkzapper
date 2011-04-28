@@ -23,8 +23,6 @@ var socketVersion = 1;
 var sharkId = 0;
 var gsTabs = [];
 var gsTabContentScriptLoaded = false;
-var backgroundGS = null;
-var restoreQueueData = null;
 var notifications = [];
 var socket = null;
 var songNotifications = [];
@@ -36,9 +34,9 @@ var interactionPopup;
 var interactionPopupOpen = false;
 var lastStatus = {};
 var lastSong = {};
-var settingsVersion = 9;
+var settingsVersion = 8;
 var contextMenu = {};
-var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true, "showAlbumArt": true, "enableSharkzapperMobile": false, "enableBackgroundGrooveshark":false}; 
+var defaultSettings = {"newTabOnPopupClick": true, "showMuteButton": true, "showQueuePosition": true, "showQueueButtons": true, "showPlaybackButtons": true, "showNotificationOnSongChange": false, "showSearchBox": true, "showVolumeControlOnHover": true, "showAlbumArt": true, "enableSharkzapperMobile": false}; 
 
 // Create settings with defaults
 if (!localStorage.settings || localStorage.settingsVersion < settingsVersion) {
@@ -147,23 +145,18 @@ chrome.extension.onRequest.addListener(
 	        // This is sent each time a popup is open, we give some initialisation settings such as enabled, tabId, etc.
 			case 'popupInit':
 				if (debug) console.log('Got popup init, re-checking tabs');
-				if (backgroundGS) {
-				    sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen,"includeNotification":request.notification},'extension');
-				    sendRequest({"command":"updateStatus"},'tab');
-				} else {
-				    get_gs_tab(function(notification){return function(){ //success (at least one open tab)
-					    sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen,"includeNotification":notification},'extension');
-					    sendRequest({"command":"updateStatus"},'tab');
-				    };}(request.notification),function(notification){ return function(){ // fail (no open tab)
-				        if (getSetting('newTabOnPopupClick')) {
-				            open_gs_tab();
-					        sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":true,"includeNotification":notification},'extension');
-				        } else {
-					        sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false,"includeNotification":notification},'extension');
-				        }
-				        gsTabContentScriptLoaded = false;
-				    };}(request.notification));
-			    }
+				get_gs_tab(function(notification){return function(){ //success (at least one open tab)
+					sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen,"includeNotification":notification},'extension');
+					sendRequest({"command":"updateStatus"},'tab');
+				};}(request.notification),function(notification){ return function(){ // fail (no open tab)
+				    if (getSetting('newTabOnPopupClick')) {
+				        open_gs_tab();
+					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":true,"includeNotification":notification},'extension');
+				    } else {
+					    sendRequest({"command":"popupUpdate","enabled":false,"pinnedPopupOpen":pinnedPopupOpen,"closeImmediately":false,"includeNotification":notification},'extension');
+				    }
+				    gsTabContentScriptLoaded = false;
+				};}(request.notification));
 				break;
             
             // This is sent when Grooveshark is closing (or has closed)					
@@ -218,11 +211,7 @@ chrome.extension.onRequest.addListener(
 		    // This is sent from a content script many times a second. Most processing for this is done in the popup,
 		    // however we also set the title of the browser action to the song / artist name
 		    case 'statusUpdate':
-		        try {
 		        socket_send_update(request);
-		        } catch(e) {
-		            console.error('socket_send_update',e);
-	            }
                 lastStatus = request;
                 
 		        if (lastSong && request.currentSong && request.currentSong.SongName == lastSong.SongName && request.currentSong.ArtistName == lastSong.ArtistName && request.currentSong.AlbumName == lastSong.AlbumName) return;
@@ -289,12 +278,6 @@ chrome.extension.onRequest.addListener(
                 if (sharkId && socket && socket.connected) {
                     sendRequest({command: 'mobileBinded', sharkId: sharkId}, 'tab');
                 }
-                if (backgroundGS && restoreQueueData) {
-                    setTimeout(function(){
-                        restoreQueueData.command = 'restoreQueue';
-                        sendRequest(restoreQueueData,'tab');
-                    },2000);
-                }
                 break;
             
             // This is sent to get all the settings
@@ -316,16 +299,10 @@ chrome.extension.onRequest.addListener(
                 if (debug) console.log ("Saved Settings!",request.settings);
                 break;
                 
-            case 'transferToBackground':
-                restoreQueueData = request;
-                create_background_gs();
-                break;
-                
             // This is sent to get a single setting, and sends the response directly back (requires callback on sender)
             case 'getSetting':
                 if (!request.settingName) return;
                 sendResponse(getSetting(request.settingName));
-                break;
 		}
 	}
 );
@@ -339,13 +316,7 @@ function sendRequest(request,dest,dontModifySource) {
 			if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">E>",request.command,request);
 			break;
 		case 'tab':
-		    if (backgroundGS) {
-		        backgroundGS.contentWindow.postMessage(JSON.stringify(request),'http://listen.grooveshark.com');
-		        console.log('sent to iframe');
-		    } else {
-		        if (!gsTabs[0]) { return; }
-		        chrome.tabs.sendRequest(gsTabs[0], request); 
-	        }
+		    chrome.tabs.sendRequest(gsTabs[0], request); 
 			if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">T>",request.command,request);
 			break;
 		case 'othertabs': // all tabs except first (active) tab
@@ -403,19 +374,6 @@ function do_external_action(action) {
     }
 }
 
-function create_background_gs() {
-    if (backgroundGS != null) { return; }
-    backgroundGS = document.createElement('iframe');
-    backgroundGS.src = 'http://listen.grooveshark.com';
-    document.body.innerHTML = '';
-    document.body.appendChild(backgroundGS);
-}
-
-function remove_background_gs() {
-    document.body.innerHTML = '';
-    backgroundGS = null;
-}
-
 function load_socketio() {
     var scriptEl = document.createElement('script');
     scriptEl.id = 'socket.io';
@@ -438,7 +396,7 @@ function load_socket() {
     socket.connect();
 }
 function socket_send_update(status) {
-    if (!socket || !socket.connected || socket.connecting) { return; } //ignore when not connected
+    if (!socket || !socket.connected) { return; } //ignore when not connected
     if (!status) {
         var params = {currentSong: {}};
         if (lastStatus.hasOwnProperty('isMuted')) params.isMuted = lastStatus.isMuted;
@@ -446,11 +404,9 @@ function socket_send_update(status) {
         if (lastStatus.hasOwnProperty('isPlaying')) params.isPlaying = lastStatus.isPlaying;
         if (lastStatus.hasOwnProperty('shuffle')) params.shuffle = lastStatus.shuffle;
         var paramsSet = false;
-        if (lastSong) {
-            for (i in lastSong) {
-                params.currentSong[i] = lastSong[i];
-                paramsSet = true;
-            }
+        for (i in lastSong) {
+            params.currentSong[i] = lastSong[i];
+            paramsSet = true;
         }
         if (!paramsSet) { params.currentSong = null; }
         socket_send_event('statusUpdate',params);
@@ -559,7 +515,6 @@ function socket_handle_connect() {
 }
 function socket_handle_disconnect() {
     sendRequest({command: 'mobileUnbinded'}, 'tab');
-    socket = null;
 }
 function socket_handle_connect_failed(e) {
     console.error('Socket connect failed',e);

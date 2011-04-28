@@ -1,8 +1,8 @@
-<form id="settings_sharkzapper" class="vertical" method="post" action="">
-    <h3>sharkZapper Settings</h3>
+<form id="settings_sharkzapper" class="settings" method="post" action="">
+    <h4>sharkZapper Settings</h4>
     <fieldset>
         <legend>Appearance</legend>
-        <ul class="checkbox_wrapper">
+        <ul class="checkbox_list">
             <li>
                 <input id="settings_sharkzapper_showAlbumArt" type="checkbox" tabindex="" name="settings_sharkzapper_showAlbumArt"
                 <% if (sharkzapperSettings.showAlbumArt) { %>checked="checked"<% } %> onchange="if($(this).is(':checked')){$('#settings_sharkzapper_showQueueButtons,#settings_sharkzapper_showPlaybackButtons').removeAttr('disabled');} else {$('#settings_sharkzapper_showQueueButtons,#settings_sharkzapper_showPlaybackButtons').attr('disabled','disabled');}">
@@ -55,7 +55,7 @@
     <br />
     <fieldset>
         <legend>Behaviour</legend>
-        <ul class="checkbox_wrapper">
+        <ul class="checkbox_list">
             <li>
                 <input id="settings_sharkzapper_newTabOnPopupClick" type="checkbox" tabindex="" name="settings_sharkzapper_newTabOnPopupClick"
                 <% if (sharkzapperSettings.newTabOnPopupClick) { %>checked="checked"<% } %>>

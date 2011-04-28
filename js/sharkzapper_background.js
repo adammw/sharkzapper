@@ -248,6 +248,20 @@ chrome.extension.onRequest.addListener(
                 if (interactionPopupOpen) interactionPopup.cancel();
                 break;
                 
+            case 'fetchInject':
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET",chrome.extension.getURL('js/sharkzapper_inject.js'));
+                xhr.onreadystatechange=function() {
+                    if (this.readyState == 4) {
+                        if (xhr.responseText) {
+                            sendRequest({command: 'injectScript', script: xhr.responseText}, 'tab');
+                        } else {
+                            console.error("Could not fetch sharkzapper_inject.js", this);
+                        }
+                    }
+                }
+                xhr.send();
+                break;
             // This is sent from a content script when it needs to load a (local) view file
             case 'fetchView':
                 if (!request.viewName) { console.error("Cannot fetch view - no viewName specified"); }
@@ -261,7 +275,7 @@ chrome.extension.onRequest.addListener(
                                 response.command = 'viewUpdate';
                                 response.view = xhr.responseText;
                                 sendRequest(response, 'tab');
-                            } else {XMLHttpRequest
+                            } else {
                                 console.error("Could not fetch "+viewsDir+request.viewName + '.ejs',xhr);
                             }
                         }

@@ -19,7 +19,7 @@ function inject_sharkzapper() {
     sendRequest({"command": "getTabCount"});
 
     function receiveMessage(e) {
-        if (e.origin != "http://listen.grooveshark.com") return;
+        if (e.origin != "http://preview.grooveshark.com" && e.origin != "http://grooveshark.com") return;
 	    var request = JSON.parse(e.data);
         if (debug) console.log('sharkzapper:', '<(M)C<', request);
 	    switch (request.command) {
@@ -52,7 +52,8 @@ function inject_sharkzapper() {
 
     function sendMessage(message) {
         if (debug) console.log('sharkzapper:', '>(M)C>', message);
-        window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com");
+        //TODO: Change origin to allow communication on preview.grooveshark.com
+        window.postMessage(JSON.stringify(message), "http://grooveshark.com");
     }
 
     function recieveRequest(request, sender, sendResponse) {
@@ -91,7 +92,7 @@ function inject_sharkzapper() {
 				    if (!document.getElementById('sharkzapper_warning_bar')) {
 					    warn = document.createElement('div');
 					    warn.id = 'sharkzapper_warning_bar';
-					    warn.innerHTML = '<div style="position: absolute; top: 0px; z-index: 100000; color: black; width: 100%; text-align: center; font-size: 120%; padding: 12px; background-color: rgba(255, 255, 224, 0.8); ">Grooveshark is already open in <a href="http://listen.grooveshark.com/" onclick="window.postMessage(JSON.stringify({\'command\':\'firstTabNavigate\'}), \'http://listen.grooveshark.com\'); ">another tab</a>, please close this tab if you wish to use SharkZapper. <span style="float:right; margin-right: 24px;"><a href="#/" onclick="document.body.removeChild(document.getElementById(\'sharkzapper_warning_bar\'));">close</a></span></div>';
+					    warn.innerHTML = '<div style="position: absolute; top: 0px; z-index: 100000; color: black; width: 100%; text-align: center; font-size: 120%; padding: 12px; background-color: rgba(255, 255, 224, 0.8); ">Grooveshark is already open in <a href="http://grooveshark.com/" onclick="window.postMessage(JSON.stringify({\'command\':\'firstTabNavigate\'}), \'http://grooveshark.com\'); ">another tab</a>, please close this tab if you wish to use SharkZapper. <span style="float:right; margin-right: 24px;"><a href="#/" onclick="document.body.removeChild(document.getElementById(\'sharkzapper_warning_bar\'));">close</a></span></div>';
 					    document.body.appendChild(warn);
                         window.addEventListener("message", tabnavListener, false);  // listen for "firstTabNavigate" message 
                                                                                     // can't rely on normal listener as it will be cleaned up by clean_up()
@@ -157,7 +158,7 @@ function inject_sharkzapper() {
 			                function sharkzapper_post_message(message) {\
                                 if (sharkzapper_debug) console.log("sharkzapper:", ">P>", message);\
 				                message.source = "page";\
-				                window.postMessage(JSON.stringify(message), "http://listen.grooveshark.com");\
+				                window.postMessage(JSON.stringify(message), "http://grooveshark.com");\
 			                }\
                             function sharkzapper_handle_notification(n) {\
                                 n.command="notification";\
@@ -171,7 +172,7 @@ function inject_sharkzapper() {
                                 }\
                             }\
 					        function sharkzapper_handle_message(e) {\
-						        if (e.origin == "http://listen.grooveshark.com") {\
+						        if (e.origin == "http://grooveshark.com") {\
 							        var request = JSON.parse(e.data);\
 							        if (request.source == "page") { return; }\
 							        if (sharkzapper_debug) console.log("sharkzapper:", "<P<", request);\
@@ -452,14 +453,14 @@ function clean_up(injectNew) {
     
 }
 function tabnavListener(e){
-    if (e.origin != "http://listen.grooveshark.com") return;
+    if (e.origin != "http://preview.grooveshark.com" && e.origin != "http://grooveshark.com") return;
     var request = JSON.parse(e.data)
     if (request.command != 'firstTabNavigate') return;
     chrome.extension.sendRequest(request);
     window.removeEventListener("message",tabnavListener,false);
 }
 function cleanupDoneListener(e){
-    if (e.origin != "http://listen.grooveshark.com") return;
+    if (e.origin != "http://preview.grooveshark.com" && e.origin != "http://grooveshark.com") return;
     var request = JSON.parse(e.data)
     if (request.command != 'cleanupDone') return;
     window.removeEventListener("message",cleanupDoneListener,false);

@@ -73,7 +73,7 @@ function get_gs_tab(success_callback, fail_callback, arg) {
 		gsTabs = [];
 		for (wi in win) {
 			for (ti in win[wi].tabs) {
- 				if(win[wi].tabs[ti].url.indexOf('http://listen.grooveshark.com/')==0) {
+ 				if(win[wi].tabs[ti].url.indexOf('http://preview.grooveshark.com/')==0 || win[wi].tabs[ti].url.indexOf('http://grooveshark.com/')==0) {
 					gsTabs.push(win[wi].tabs[ti].id);
  				}
  			}
@@ -102,20 +102,20 @@ function inject_scripts() {
 function open_gs_tab(url) {
 	if (gsTabs.length == 0) {
 		if (url) {
-			chrome.tabs.create({url:'http://listen.grooveshark.com/' + url});
+			chrome.tabs.create({url:'http://grooveshark.com/' + url});
 		} else {
-			chrome.tabs.create({url:'http://listen.grooveshark.com/'});
+			chrome.tabs.create({url:'http://grooveshark.com/'});
 		}
 	} else {
 	    if (url) {
 	        // Ensure that we only update url if it is different
 	        chrome.tabs.get(gsTabs[0], function(url){ return function(tab) {
-	            if (tab && tab.url == 'http://listen.grooveshark.com/' + url) {
+	            if (tab && tab.url == 'http://grooveshark.com/' + url) {
 	                chrome.tabs.update(gsTabs[0], {'selected':true});
-                } else if (tab && tab.url != 'http://listen.grooveshark.com/' + url) {
-                    chrome.tabs.update(gsTabs[0], {'url':'http://listen.grooveshark.com/' + url, 'selected':true});
+                } else if (tab && tab.url != 'http://grooveshark.com/' + url) {
+                    chrome.tabs.update(gsTabs[0], {'url':'http://grooveshark.com/' + url, 'selected':true});
                 } else {
-    				chrome.tabs.create({url:'http://listen.grooveshark.com/' + url});
+    				chrome.tabs.create({url:'http://grooveshark.com/' + url});
 				}
 	        }}(url));
 		} else {
@@ -167,7 +167,7 @@ chrome.extension.onRequest.addListener(
 			    break;
 			
 			// This is sent from the popup to open the current grooveshark tab or create a new one
-			// The url is appended to the end http://listen.grooveshark.com/
+			// The url is appended to the end http://grooveshark.com/
 			case 'openGSTab':
 				get_gs_tab(open_gs_tab,open_gs_tab,request.url);
 				break;

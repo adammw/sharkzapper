@@ -24,21 +24,24 @@ var sharkzapper = new (function SharkZapperPage(debug){
         onReady: {}
     };
     sharkzapper.listeners = {
+        subscriptions: {},
         bind: function bind_listners() {
             // DOM Events
             window.addEventListener("message", sharkzapper.listeners.message, false);
             
             // GS Events
-            $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
-            $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
+            sharkzapper.listeners.subscriptions["gs.app.ready"] = $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
+            sharkzapper.listeners.subscriptions["gs.player.playstatus"] = $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
         },
         unbind: function unbind_listeners() {
             // DOM Events
             window.removeEventListener("message", sharkzapper.listeners.message);
             
             // GS Events
-            $.unsubscribe("gs.app.ready", sharkzapper.listeners.ready);
-            $.unsubscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
+            
+            console.log('unsubscribed from events');
         },
         error: function handle_error(e) {
             console.error('sharkzapper error:',e);
@@ -83,20 +86,28 @@ var sharkzapper = new (function SharkZapperPage(debug){
         recieve: function message_recieve(data) {
             if (debug) console.log("sharkzapper:", "<P<", data.command, data);
             switch(data.command) {
+                // Command called by contentscript to clean up and prepare for re-injection
                 case 'cleanUp':
                     sharkzapper.destroy();
                     break;
+                    
+                // Command called by popup to get a forced status update, usually cached but may be fresh if cache unavailable
                 case 'updateStatus':
                     if (sharkzapper.cache.playbackStatus) {
                         sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
-                    } else if (!sharkzapper.gs_ready) {
-                        sharkzapper.queue.onReady.updateStatus = function() {
-                            sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
-                        };
                     } else {
-                        sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
+                        sharkzapper.helpers.execWhenGSReady(function updateStatus() {
+                            sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
+                        },'updateStatus');
                     }                
                     break;
+                    
+                /* Commands */
+                case 'toggleMute':
+                    if (sharkzapper.gs_ready) {
+                        GS.player.setIsMuted(!GS.player.getIsMuted());
+                    }
+                    break;               
             }
         }
     };
@@ -122,6 +133,14 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 })(new_data, old_data) : new_data;
                 sharkzapper.cache[key] = new_data;
                 return delta_data;
+            }
+        },
+        execWhenGSReady: function execWhenGSReady(func, key) {
+            if (typeof func != 'function') return;
+            if (!sharkzapper.gs_ready) { 
+                sharkzapper.queue.onReady[key] = func;
+            } else {
+                func.call();
             }
         }
     };

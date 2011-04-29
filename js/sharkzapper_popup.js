@@ -188,6 +188,18 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     if (status.playbackProperties.hasOwnProperty('isMuted')) {
                         $('#player_volume').toggleClass('mute', status.playbackProperties.isMuted);
                     }
+                    if (status.playbackProperties.hasOwnProperty('crossfadeEnabled')) {
+                        $('#player_crossfade').toggleClass('active', status.playbackProperties.crossfadeEnabled);
+                    }
+                }
+                if (status.queue) {
+                    if (status.queue.hasOwnProperty('shuffleEnabled')) {
+                        $('#player_shuffle').toggleClass('active', status.queue.shuffleEnabled);
+                    }
+                    if (status.queue.hasOwnProperty('repeatMode')) {
+                        $('#player_loop').toggleClass('active', Boolean(status.queue.repeatMode));
+					    $('#player_loop').toggleClass('one', status.queue.repeatMode == 2); //REPEAT_ONE
+                    }
                 }
             },
             updateQueue: []

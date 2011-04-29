@@ -29,16 +29,22 @@ var sharkzapper = new (function SharkZapperPage(debug){
         init: function init_overrides() {
             sharkzapper.helpers.execWhenReady(function playerOverride() {
                 sharkzapper.cache.playbackProperties = GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
+                GS.player.player.setQueueChangeCallback("sharkzapper.overrides.queueChange");
             },'playerOverride','onPlayerReady');
         },
         undo: function undo_overrides() {
             GS.player.player.setPropertyChangeCallback("GS.Controllers.PlayerController.instance().propertyChange");  
+            GS.player.player.setQueueChangeCallback("GS.Controllers.PlayerController.instance().queueChange");
         },
         listeners: {
-            //This override would not be needed if Grooveshark had a $.publish("gs.player.propchange") on PlayerController.propertyChange
+            /*These overrides would not be needed if Grooveshark had a $.publish("gs.player.propchange") etc. on PlayerController.propertyChange etc.*/
             propertyChange: function sharkzapper_handle_propertyChange(props) {
                 $.publish("gs.player.propchange",props);
                 GS.Controllers.PlayerController.instance().propertyChange.call(null, props);
+            },
+            queueChange: function sharkzapper_handle_queueChange(queue) {
+                $.publish("gs.player.queuechange",queue);
+                GS.Controllers.PlayerController.instance().queueChange.call(null, queue);
             }
         }
     };
@@ -54,6 +60,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             
             // Custom Events - see overrides
             sharkzapper.listeners.subscriptions["gs.player.propchange"] = $.subscribe("gs.player.propchange", sharkzapper.listeners.propchange);
+            sharkzapper.listeners.subscriptions["gs.player.queuechange"] = $.subscribe("gs.player.queuechange", sharkzapper.listeners.queuechange);
             
             // Fake the gs.app.ready event (needed when injected after it has already fired)
             if (document.readyState == 'complete') {
@@ -144,6 +151,14 @@ var sharkzapper = new (function SharkZapperPage(debug){
         propchange: function handle_propchange(status, noDelta) {
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackProperties');
             sharkzapper.message.send({"command": "statusUpdate", "playbackProperties": status, "cached": false, "delta": !Boolean(noDelta)});
+        },
+        queuechange: function handle_queuechange(change) {
+            if (debug) console.log('queuechange',change.type, change);
+            if (change.type == 'propertyChange' || change.type == 'queueReset') {
+                // simplify change because we don't care about most of the things and we don't want to waste time sending useless data
+                // then send it
+                sharkzapper.message.send({"command": "statusUpdate", "queue": sharkzapper.helpers.simplifyQueue(change.details), "cached": false, "delta": true});
+            }            
         }
     };
     sharkzapper.message = {
@@ -180,7 +195,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
                                 sharkzapper.listeners.propchange(GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange"), true);
                             },'updateProperties','onPlayerReady');
                         }
-                    }                
+                    }
+                    //TODO: cache data like the rest of them 
+                    sharkzapper.helpers.execWhenReady(function updateQueue() {
+                        sharkzapper.message.send({"command": "statusUpdate", "queue": sharkzapper.helpers.simplifyQueue(GS.player.getCurrentQueue()), "cached": false, "delta": false});
+                    },'updateQueue','onPlayerReady');                
                     break;
                     
                 /* Commands */
@@ -239,6 +258,22 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     func.call();
                 }
             }
+        },
+        simplifyQueue: function simplifyQueue(queue) {
+            delete queue.queueID;
+            if (queue.hasOwnProperty('activeSong') && queue.activeSong != null) {
+                queue.activeSong = true;
+            } 
+            if (queue.hasOwnProperty('nextSong') && queue.nextSong != null) {
+                queue.nextSong = true;
+            }
+            if (queue.hasOwnProperty('previousSong') && queue.previousSong != null) {
+                queue.previousSong = true;
+            }   
+            if (queue.hasOwnProperty('songs') && queue.songs instanceof Array) {
+                queue.songs = queue.songs.length;
+            }
+            return queue;
         }
     };
     sharkzapper.destroy = function destroy() {

@@ -185,10 +185,15 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     
                 /* Commands */
                 case 'toggleMute':
-                    if (sharkzapper.gs_ready) {
-                        Grooveshark.setIsMuted(!Grooveshark.getIsMuted());
-                    }
-                    break;               
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.setIsMuted(!Grooveshark.getIsMuted());
+                    break;    
+                case "togglePlayPause":
+                    if (!sharkzapper.gs_ready) return;
+	                
+	                Grooveshark.togglePlayPause();
+	                break;           
             }
         }
     };

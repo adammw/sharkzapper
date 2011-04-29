@@ -32,22 +32,36 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // GS Events
             sharkzapper.listeners.subscriptions["gs.app.ready"] = $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
             sharkzapper.listeners.subscriptions["gs.player.playstatus"] = $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
+            
+            // Fake the gs.app.ready event (needed when injected after it has already fired)
+            if (document.readyState == 'complete') {
+                $(document).ready(function() {
+                    setTimeout(function() {
+                        if (!sharkzapper.gs_ready) {
+                            if (debug) console.log('overriding gs.app.ready');
+                            sharkzapper.listeners.ready();
+                        } 
+                    }, 200);
+                });
+            }
         },
         unbind: function unbind_listeners() {
             // DOM Events
             window.removeEventListener("message", sharkzapper.listeners.message);
             
             // GS Events
-            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
             
-            console.log('unsubscribed from events');
+            if (debug) console.log('unsubscribed from events');
         },
         error: function handle_error(e) {
             console.error('sharkzapper error:',e);
         },
         ready: function handle_ready() {
+            // We only want the event once
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             sharkzapper.gs_ready = true;
+            if (debug) console.log('sharkzapper: gs.app.ready');
             
             for (i in sharkzapper.queue.onReady) {
                 try {
@@ -159,6 +173,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
         } catch (e) {
             sharkzapper.listeners.error(e);
         }
+        
         
         return sharkzapper_external;
     };

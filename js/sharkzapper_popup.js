@@ -56,8 +56,16 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             if (debug) console.log("sharkzapper:", "<<<", data.command, data);
             switch (data.command) {
                 case 'statusUpdate': 
+                    // Update UI
                     sharkzapper.ui.popup.update(data);
-                    //console.log('statusUpdate', sharkzapper.helpers.undelta(request.playbackStatus, 'playbackStatus'), request.playbackStatus);
+                    
+                    // Update cache
+                    if (data.hasOwnProperty('playbackStatus')) {
+                        sharkzapper.helpers.undelta(data.playbackStatus, 'playbackStatus');
+                    }
+                    if (data.hasOwnProperty('playbackProperties')) {
+                        sharkzapper.helpers.undelta(data.playbackProperties, 'playbackProperties');
+                    }
                     break;
             }
         }
@@ -67,10 +75,23 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             bind: function bind_ui_listeners() {
                 $("#volumeSlider").bind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
                 $('#player_volume').bind('click', sharkzapper.ui.listeners.volumeClick);
+                $('#player_play_pause').bind('click', sharkzapper.ui.listeners.playPauseClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
                 $('#player_volume').unbind('click', sharkzapper.ui.listeners.volumeClick);
+                $('#player_play_pause').unbind('click', sharkzapper.ui.listeners.playPauseClick);
+            },
+            playPauseClick: function handle_playPauseClick(e) {
+                //TODO check what to do for PLAY_STATUS_COMPLETE
+                /*
+                // if paused
+			        sendMessage({"command": "resumeSong"});
+		        // else if not playing
+			        sendMessage({"command": "playSong"});
+		        // else (hence is playing)
+			        sendMessage({"command": "pauseSong"});
+		        */
             },
             volumeClick: function handle_volumeClick(e) {
                 sharkzapper.message.send({"command":"toggleMute"});
@@ -112,10 +133,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     sharkzapper.ui.popup.updateQueue.push(status);
                     return;
                 }
-                if (!status.delta) {
+                if (!status.delta) { 
+                    // Check for null playbackStatus - indicates nothing to play / nothing playing
                     if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
-                        //not playing
-                        $('#songDetails, #albumart').addClass('hidden');
+                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').addClass('hidden');
+                        $('#player_play_pause').addClass('disabled').removeClass('pause');
+                        $('#player_play_pause').attr('disabled','disabled');
                         $('#player_duration, #player_elapsed').text('');
                         //TODO
                     }
@@ -132,7 +155,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
     					    $('#artistName').text(status.playbackStatus.activeSong.ArtistName);
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
-                            $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 'm' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
+                            $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
                         }
                     }
                     if (status.playbackStatus.hasOwnProperty('duration')) {
@@ -142,8 +165,18 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_elapsed').text(sharkzapper.helpers.msec2time(status.playbackStatus.position));
                     }
                     if (status.playbackStatus.hasOwnProperty('status')) {
-                        $('#songDetails, #albumart, #lowerControls').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
-                        $('#player_play_pause').toggleClass('pause', status.playbackStatus.status != 4);
+                        // Hides thumbnail and most controls when not playing
+                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        
+                        $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING
+
+                        // Disable play/pause
+                        $('#player_play_pause').toggleClass('disabled', status.playbackStatus.status == 0); //PLAY_STATUS_NONE
+                        if (status.playbackStatus.status == 0) { //TODO: fix needed for when queue has songs but is still PLAY_STATUS_NONE
+                            $('#player_play_pause').attr('disabled','disabled');
+                        } else {
+                            $('#player_play_pause').removeAttr('disabled');
+                        }
                         
                         // PLAY_STATUS_NONE, PLAY_STATUS_INITIALIZING, PLAY_STATUS_FAILED or PLAY_STATUS_COMPLETED:
                         if (status.playbackStatus.status < 2 || status.playbackStatus.status > 5) {

@@ -199,10 +199,13 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 return new_data;
             } else {
                 var old_data = sharkzapper.cache[key];
-                var delta_data = (typeof new_data == 'object') ? (function calc_delta(new_data, old_data) {
+                var delta_data = (typeof new_data == 'object' && new_data != null) ? (function calc_delta(new_data, old_data) {
+                    if (old_data == null) {
+                        old_data = {};
+                    }
                     var delta_data = {};
                     for (i in new_data) {
-                        if (new_data[i] != old_data[i]) {
+                        if (!old_data.hasOwnProperty(i) || new_data[i] != old_data[i]) {
                             if (typeof new_data[i] == 'object') {
                                 delta_data[i] = calc_delta(new_data[i], old_data[i]); 
                             } else {

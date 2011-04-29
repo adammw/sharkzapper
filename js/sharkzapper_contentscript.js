@@ -110,7 +110,7 @@ function inject_sharkzapper() {
                 inject.id = 'sharkzapperInject'; 
                 inject.className = 'version_'+thisVersion;
                 inject.innerHTML = request.script;
-                if(debug) console.log("injecting sharkzapper version "+thisVersion, inject, inject.ownerDocument, document);
+                if(debug) console.log("injecting sharkzapper version "+thisVersion, inject);
                 try {
                     document.body.appendChild(inject);
                 } catch (e) {
@@ -179,6 +179,7 @@ function clean_up(injectNew) {
     } else {
         window.postMessage(JSON.stringify({"command":"cleanUp"}), location.origin);
         window.postMessage(JSON.stringify({"command":"removeListener", "injectNew": injectNew}), location.origin);
+        document.body.removeChild(inject);
     }
     
 }

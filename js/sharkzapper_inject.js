@@ -13,15 +13,31 @@
  */
 var sharkzapper = new (function SharkZapperPage(debug){
     var sharkzapper = this;
-    var sharkzapper_external = new (function SharkZapper_ExternalInterface() {
-        if (debug) this.internal = sharkzapper;
-        
-        
-    })();
     sharkzapper.cache = {};
+    sharkzapper.timers = {};
     sharkzapper.gs_ready = false;
+    sharkzapper.gs_player_ready = false;
     sharkzapper.queue = {
-        onReady: {}
+        onReady: {
+            callplayercheckonready: function callplayercheckonready() {
+                sharkzapper.timers.playerCheck = setTimeout(sharkzapper.listeners.playercheck, 100);
+            }
+        },
+        onPlayerReady: {}
+    };
+    sharkzapper.overrides = {
+        init: function init_overrides() {
+            sharkzapper.helpers.execWhenReady(function playerOverride() {
+                GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
+            },'playerOverride','onPlayerReady');
+        },
+        listeners: {
+            //This override would not be needed if Grooveshark had a $.publish("gs.player.propchange") on PlayerController.propertyChange
+            propertyChange: function sharkzapper_handle_propertyChange(props) {
+                $.publish("gs.player.propchange",props);
+                GS.Controllers.PlayerController.instance().propertyChange.call(null, props);
+            }
+        }
     };
     sharkzapper.listeners = {
         subscriptions: {},
@@ -32,6 +48,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // GS Events
             sharkzapper.listeners.subscriptions["gs.app.ready"] = $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
             sharkzapper.listeners.subscriptions["gs.player.playstatus"] = $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
+            
+            // Custom Events - see overrides
+            sharkzapper.listeners.subscriptions["gs.player.propchange"] = $.subscribe("gs.player.propchange", sharkzapper.listeners.propchange);
             
             // Fake the gs.app.ready event (needed when injected after it has already fired)
             if (document.readyState == 'complete') {
@@ -51,6 +70,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
             
             // GS Events
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
+            if (sharkzapper.listeners.subscriptions["gs.app.ready"]) {
+                $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
+            }
             
             if (debug) console.log('unsubscribed from events');
         },
@@ -58,8 +80,6 @@ var sharkzapper = new (function SharkZapperPage(debug){
             console.error('sharkzapper error:',e);
         },
         ready: function handle_ready() {
-            // We only want the event once
-            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             sharkzapper.gs_ready = true;
             if (debug) console.log('sharkzapper: gs.app.ready');
             
@@ -70,6 +90,34 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     console.error('onready error:',e);
                 }
                 delete sharkzapper.queue.onReady[i];
+            }
+            
+            // We only want the event once, async get rid of it
+            setTimeout(function(){
+                $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
+            },0);
+        },
+        playercheck: function timer_playerCheck() {
+            if (GS.player.player) {
+                sharkzapper.gs_player_ready = true;
+                if (debug) console.log('sharkzapper: we have GS.player.player');
+                
+                for (i in sharkzapper.queue.onPlayerReady) {
+                    try {
+                        sharkzapper.queue.onPlayerReady[i].call();
+                    } catch(e) {
+                        console.error('onplayerready error:',e);
+                    }
+                    delete sharkzapper.queue.onPlayerReady[i];
+                }
+                
+                if (sharkzapper.timers.playerCheck) {
+                    clearTimeout(sharkzapper.timers.playerCheck);
+                    delete sharkzapper.timers.playerCheck;
+                }
+            } else {
+                if (debug) console.log('sharkzapper: waiting for GS.player.player');
+                sharkzapper.timers.playerCheck = setTimeout(timer_playerCheck, 500);
             }
         },
         message: function handle_message(e) {
@@ -88,6 +136,10 @@ var sharkzapper = new (function SharkZapperPage(debug){
         playstatus: function handle_playstatus(status, noDelta) {
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackStatus');
             sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": status, "cached": false, "delta": !Boolean(noDelta)});
+        },
+        propchange: function handle_propchange(status, noDelta) {
+            status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackProperties');
+            sharkzapper.message.send({"command": "statusUpdate", "playbackProperties": status, "cached": false, "delta": !Boolean(noDelta)});
         }
     };
     sharkzapper.message = {
@@ -110,7 +162,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (sharkzapper.cache.playbackStatus) {
                         sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
                     } else {
-                        sharkzapper.helpers.execWhenGSReady(function updateStatus() {
+                        sharkzapper.helpers.execWhenReady(function updateStatus() {
                             sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
                         },'updateStatus');
                     }                
@@ -119,7 +171,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 /* Commands */
                 case 'toggleMute':
                     if (sharkzapper.gs_ready) {
-                        GS.player.setIsMuted(!GS.player.getIsMuted());
+                        Grooveshark.setIsMuted(!Grooveshark.getIsMuted());
                     }
                     break;               
             }
@@ -149,12 +201,20 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 return delta_data;
             }
         },
-        execWhenGSReady: function execWhenGSReady(func, key) {
+        execWhenReady: function execWhenReady(func, key, queue) {
             if (typeof func != 'function') return;
-            if (!sharkzapper.gs_ready) { 
-                sharkzapper.queue.onReady[key] = func;
-            } else {
-                func.call();
+            if (!queue || queue == 'onReady') {
+                if (!sharkzapper.gs_ready) { 
+                    sharkzapper.queue.onReady[key] = func;
+                } else {
+                    func.call();
+                }
+            } else if (queue == 'onPlayerReady') {
+                if (!sharkzapper.gs_player_ready) { 
+                    sharkzapper.queue.onPlayerReady[key] = func;
+                } else {
+                    func.call();
+                }
             }
         }
     };
@@ -164,6 +224,14 @@ var sharkzapper = new (function SharkZapperPage(debug){
         } catch(e) {
             console.error('cleanUp error:', e);    
         }
+        for (i in sharkzapper.timers) {
+            try {
+                clearTimeout(sharkzapper.timers[i]);
+            } catch (e) {
+                console.error('could not clearTimeout on',i,sharkzapper.timers[i],e);
+            }
+        }
+        
         sharkzapper = null;
         delete window.sharkzapper;
     };
@@ -173,9 +241,12 @@ var sharkzapper = new (function SharkZapperPage(debug){
         } catch (e) {
             sharkzapper.listeners.error(e);
         }
-        
-        
+        sharkzapper.overrides.init();
         return sharkzapper_external;
     };
+    var sharkzapper_external = new (function SharkZapper_ExternalInterface() {
+        if (debug) this.internal = sharkzapper;
+        this.overrides = sharkzapper.overrides.listeners;
+    })();
     return this.init();
 })(true);

@@ -42,7 +42,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         request: function handle_request(request, sender, sendResponse) {
             //TODO: filter out requests from non-primary tabs
             sharkzapper.message.recieve(request);
-        },  
+        }
     };
     sharkzapper.message = {
         send: function message_send(data) {
@@ -63,22 +63,60 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         }
     };
     sharkzapper.ui = {
+        listeners: { 
+            bind: function bind_ui_listeners() {
+                $("#volumeSlider").bind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
+                $('#player_volume').bind('click', sharkzapper.ui.listeners.volumeClick);
+            },
+            unbind: function unbind_ui_listeners() {
+                $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
+                $('#player_volume').unbind('click', sharkzapper.ui.listeners.volumeClick);
+            },
+            volumeClick: function handle_volumeClick(e) {
+                sharkzapper.message.send({"command":"toggleMute"});
+            },
+            volumeUpdate: function handle_volumeUpdate(e,b) {
+                // Filter out programattic changes
+                if (!e.originalEvent) return;
+                
+                //sendMessage({"command":"volumeUpdate","volume":$('#volumeSlider').slider("option", "value")});
+                console.log('vol:',e,b);
+            }
+        },
         popup: {
             ready: false,
             init: function ui_popup_init() {
-                sharkzapper.ui.popup.ready = true;
+                // Initalise jQuery UI components
+                try {
+                    $("#volumeSlider").slider({
+                        orientation: "horizontal",
+                        range: "min",
+                        min: 0,
+                        max: 100
+                    });
+                    sharkzapper.ui.listeners.bind();
+                    sharkzapper.ui.popup.ready = true;
+                } catch(e) {
+                    console.error('ui_popup_init: fatal error',e);
+                    return;
+                }
+                
+                console.log('ui ready, performing',sharkzapper.ui.popup.updateQueue.length,'queued status updates');
                 while (sharkzapper.ui.popup.updateQueue.length) {
                     sharkzapper.ui.popup.update(sharkzapper.ui.popup.updateQueue.shift());
                 }
             },
             update: function update(status) {
                 if (!sharkzapper.ui.popup.ready) {
+                    console.log('got update but not ready, adding to queue', status, sharkzapper.ui.popup.updateQueue.length);
                     sharkzapper.ui.popup.updateQueue.push(status);
                     return;
                 }
                 if (!status.delta) {
                     if (!status.playbackStatus) {
                         //not playing
+                        $('#songDetails, #albumart').addClass('hidden');
+                        $('#player_duration, #player_elapsed').text('');
                         //TODO
                     }
                 }
@@ -97,9 +135,20 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 'm' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
                         }
                     }
+                    if (status.playbackStatus.hasOwnProperty('duration')) {
+                        $('#player_duration').text(sharkzapper.helpers.msec2time(status.playbackStatus.duration));
+                    }
+                    if (status.playbackStatus.hasOwnProperty('position')) {
+                        $('#player_elapsed').text(sharkzapper.helpers.msec2time(status.playbackStatus.position));
+                    }
                     if (status.playbackStatus.hasOwnProperty('status')) {
-                        $('#songDetails, #albumart').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        $('#songDetails, #albumart, #lowerControls').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status != 4);
+                        
+                        // PLAY_STATUS_NONE, PLAY_STATUS_INITIALIZING, PLAY_STATUS_FAILED or PLAY_STATUS_COMPLETED:
+                        if (status.playbackStatus.status < 2 || status.playbackStatus.status > 5) {
+                            //TODO
+                        }
                     }
                 } 
             },
@@ -130,7 +179,19 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 sharkzapper.cache[key] = undelta_data;
                 return undelta_data;
             }
+        },
+        msec2time: function msec2time(msec) {
+            // return in m:ss
+            return Math.floor(msec / 1000 / 60) + ":" + sharkzapper.helpers.lpad((Math.floor(msec / 1000) % 60).toString(), "0", 2);
+        },
+        lpad: function lpad(str, padString, length) {
+            while (str.length < length)
+                str = padString + str;
+            return str;
         }
+    };
+    sharkzapper.toggleDebug = function toggleDebug() {
+        debug = !debug;
     };
     sharkzapper.init = function init() {
         try {

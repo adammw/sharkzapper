@@ -13,7 +13,7 @@
  */
 /* constants (but don't use const as they may be redefined by newer injection) */
 var debug = true;
-var thisVersion = '1.3.10';
+var thisVersion = '1.4.0-beta1';
 /* global variables */
 var recieveMessage, sendRequest, inject, tabnavListener;
 var injected = false;
@@ -141,36 +141,45 @@ function clean_up(injectNew) {
     window.addEventListener("message", cleanupDoneListener, false); 
     	
 	// clean up old injection
-    document.body.removeChild(document.getElementById('sharkzapperInject'));
-    if (document.getElementById('sharkzapperInject')) { console.error('could not clean up! dying...'); return;}
-    cleanup = document.createElement('script');
-    cleanup.id = 'sharkzapperCleanUp'; 
-    cleanup.className = 'version_'+thisVersion;
-    js = 'window.removeEventListener("message",sharkzapper_handle_message,false);';
-    if (injectNew) {
-        js += 'sharkzapper_post_message({"command":"removeListener","injectNew":true});';
+	inject = document.getElementById('sharkzapperInject');
+	if (!inject) { console.error('could not clean up! dying...'); return;}
+	var inject_class = (inject) ? inject.className.split('_') : null;
+	// pre-1.4
+	if (inject.className == '' || (inject_class.length > 1 && parseFloat(inject_class[1]) < 1.4)) {
+        document.body.removeChild(inject);
+        cleanup = document.createElement('script');
+        cleanup.id = 'sharkzapperCleanUp'; 
+        cleanup.className = 'version_'+thisVersion;
+        js = 'window.removeEventListener("message",sharkzapper_handle_message,false);';
+        if (injectNew) {
+            js += 'sharkzapper_post_message({"command":"removeListener","injectNew":true});';
+        } else {
+            js += 'sharkzapper_post_message({"command":"removeListener","injectNew":false});';
+        }
+        js += '             $.unsubscribe("gs.notification",sharkzapper_handle_notification);\
+				            $.unsubscribe("gs.player.nowplaying",sharkzapper_update_status);\
+				            $.unsubscribe("gs.player.queue.change",sharkzapper_update_status);\
+				            $.unsubscribe("gs.player.playing.continue",sharkzapper_update_status);\
+				            $.unsubscribe("gs.player.paused",sharkzapper_update_status);\
+                            $.unsubscribe("gs.auth.song.update",sharkzapper_update_status);\
+                            $.unsubscribe("gs.auth.favorites.songs.add",sharkzapper_update_status);\
+                            $.unsubscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\
+                            $.unsubscribe("gs.auth.library.add",sharkzapper_update_status);\
+                            $.unsubscribe("gs.auth.library.remove",sharkzapper_update_status);\
+                            delete $.View.preCached._gs_views_settings_sharkzapper_ejs;\
+                            if (GS.player.playerStatus_) { GS.player.playerStatus = GS.player.playerStatus_; }\
+                            if (GS.lightbox.open_) { GS.lightbox.open = GS.lightbox.open_; }\
+                            if (GS.Controllers.Page.SettingsController.instance().index_) { GS.Controllers.Page.SettingsController.instance().index = GS.Controllers.Page.SettingsController.instance().index_; }\
+                            if (GS.Controllers.Page.SettingsController.instance().loadSettings_) { GS.Controllers.Page.SettingsController.instance().loadSettings = GS.Controllers.Page.SettingsController.instance().loadSettings_; }\
+                            document.body.removeChild(document.getElementById("sharkzapperCleanUp"));\
+                            if (sharkzapper_debug) console.log("cleanup stage1 done!");';
+        cleanup.innerHTML=js;
+        document.body.appendChild(cleanup);
+    // version 1.4+
     } else {
-        js += 'sharkzapper_post_message({"command":"removeListener","injectNew":false});';
+        window.postMessage(JSON.stringify({"command":"cleanUp"}), location.origin);
+        window.postMessage(JSON.stringify({"command":"removeListener", "injectNew": injectNew}), location.origin);
     }
-    js += '             $.unsubscribe("gs.notification",sharkzapper_handle_notification);\
-				        $.unsubscribe("gs.player.nowplaying",sharkzapper_update_status);\
-				        $.unsubscribe("gs.player.queue.change",sharkzapper_update_status);\
-				        $.unsubscribe("gs.player.playing.continue",sharkzapper_update_status);\
-				        $.unsubscribe("gs.player.paused",sharkzapper_update_status);\
-                        $.unsubscribe("gs.auth.song.update",sharkzapper_update_status);\
-                        $.unsubscribe("gs.auth.favorites.songs.add",sharkzapper_update_status);\
-                        $.unsubscribe("gs.auth.favorites.songs.remove",sharkzapper_update_status);\
-                        $.unsubscribe("gs.auth.library.add",sharkzapper_update_status);\
-                        $.unsubscribe("gs.auth.library.remove",sharkzapper_update_status);\
-                        delete $.View.preCached._gs_views_settings_sharkzapper_ejs;\
-                        if (GS.player.playerStatus_) { GS.player.playerStatus = GS.player.playerStatus_; }\
-                        if (GS.lightbox.open_) { GS.lightbox.open = GS.lightbox.open_; }\
-                        if (GS.Controllers.Page.SettingsController.instance().index_) { GS.Controllers.Page.SettingsController.instance().index = GS.Controllers.Page.SettingsController.instance().index_; }\
-                        if (GS.Controllers.Page.SettingsController.instance().loadSettings_) { GS.Controllers.Page.SettingsController.instance().loadSettings = GS.Controllers.Page.SettingsController.instance().loadSettings_; }\
-                        document.body.removeChild(document.getElementById("sharkzapperCleanUp"));\
-                        if (sharkzapper_debug) console.log("cleanup stage1 done!");';
-    cleanup.innerHTML=js;
-    document.body.appendChild(cleanup);
     
 }
 function tabnavListener(e){

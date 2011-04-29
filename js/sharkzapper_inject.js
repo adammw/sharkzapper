@@ -11,15 +11,25 @@
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
-var sharkzapper = new (function SharkZapper(debug){
+var sharkzapper = new (function SharkZapperPage(debug){
     var sharkzapper = this;
+    var sharkzapper_external = new (function SharkZapper_ExternalInterface() {
+        if (debug) this.internal = sharkzapper;
+        
+        
+    })();
     sharkzapper.cache = {};
+    sharkzapper.gs_ready = false;
+    sharkzapper.queue = {
+        onReady: {}
+    };
     sharkzapper.listeners = {
         bind: function bind_listners() {
             // DOM Events
             window.addEventListener("message", sharkzapper.listeners.message, false);
             
             // GS Events
+            $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
             $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
         },
         unbind: function unbind_listeners() {
@@ -27,10 +37,23 @@ var sharkzapper = new (function SharkZapper(debug){
             window.removeEventListener("message", sharkzapper.listeners.message);
             
             // GS Events
+            $.unsubscribe("gs.app.ready", sharkzapper.listeners.ready);
             $.unsubscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
         },
         error: function handle_error(e) {
             console.error('sharkzapper error:',e);
+        },
+        ready: function handle_ready() {
+            sharkzapper.gs_ready = true;
+            
+            for (i in sharkzapper.queue.onReady) {
+                try {
+                    sharkzapper.queue.onReady[i].call();
+                } catch(e) {
+                    console.error('onready error:',e);
+                }
+                delete sharkzapper.queue.onReady[i];
+            }
         },
         message: function handle_message(e) {
             // Ignore external messages
@@ -42,16 +65,12 @@ var sharkzapper = new (function SharkZapper(debug){
             // Prevent feedback
             if (request.source && request.source == 'page') return;
             
-            // Print debug request
-            if (debug) console.log("sharkzapper:", "<P<", request.command, request);
-            
-            // Switch on command
-            switch (request.command) {
-            
-            }
+            // Pass to message.recieve
+            sharkzapper.message.recieve(request);           
         }, 
-        playstatus: function handle_playstatus(status) {
-            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.helpers.delta(status, 'playbackStatus')});
+        playstatus: function handle_playstatus(status, noDelta) {
+            status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackStatus');
+            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": status, "cached": false, "delta": !Boolean(noDelta)});
         }
     };
     sharkzapper.message = {
@@ -60,6 +79,25 @@ var sharkzapper = new (function SharkZapper(debug){
             data.source = "page";
             if (debug) data.timestamp = (new Date()).valueOf();
             window.postMessage(JSON.stringify(data), location.origin);
+        }, 
+        recieve: function message_recieve(data) {
+            if (debug) console.log("sharkzapper:", "<P<", data.command, data);
+            switch(data.command) {
+                case 'cleanUp':
+                    sharkzapper.destroy();
+                    break;
+                case 'updateStatus':
+                    if (sharkzapper.cache.playbackStatus) {
+                        sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
+                    } else if (!sharkzapper.gs_ready) {
+                        sharkzapper.queue.onReady.updateStatus = function() {
+                            sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
+                        };
+                    } else {
+                        sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
+                    }                
+                    break;
+            }
         }
     };
     sharkzapper.helpers = {
@@ -69,7 +107,7 @@ var sharkzapper = new (function SharkZapper(debug){
                 return new_data;
             } else {
                 var old_data = sharkzapper.cache[key];
-                var delta_data = (function calc_delta(new_data, old_data) {
+                var delta_data = (typeof new_data == 'object') ? (function calc_delta(new_data, old_data) {
                     var delta_data = {};
                     for (i in new_data) {
                         if (new_data[i] != old_data[i]) {
@@ -81,7 +119,7 @@ var sharkzapper = new (function SharkZapper(debug){
                         }
                     }
                     return delta_data
-                })(new_data, old_data);
+                })(new_data, old_data) : new_data;
                 sharkzapper.cache[key] = new_data;
                 return delta_data;
             }
@@ -90,15 +128,12 @@ var sharkzapper = new (function SharkZapper(debug){
     sharkzapper.destroy = function destroy() {
         try {
             sharkzapper.listeners.unbind();
-        } catch(e) {}
+        } catch(e) {
+            console.error('cleanUp error:', e);    
+        }
         sharkzapper = null;
         delete window.sharkzapper;
     };
-    sharkzapper.external = new (function SharkZapper_ExternalInterface() {
-        if (debug) this.internal = sharkzapper;
-        
-        
-    })();
     sharkzapper.init = function init() {
         try {
             sharkzapper.listeners.bind();
@@ -106,7 +141,7 @@ var sharkzapper = new (function SharkZapper(debug){
             sharkzapper.listeners.error(e);
         }
         
-        return sharkzapper.external;
+        return sharkzapper_external;
     };
     return this.init();
 })(true);

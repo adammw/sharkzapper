@@ -31,6 +31,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
             },'playerOverride','onPlayerReady');
         },
+        undo: function undo_overrides() {
+            GS.player.player.setPropertyChangeCallback("GS.Controllers.PlayerController.instance().propertyChange");  
+        },
         listeners: {
             //This override would not be needed if Grooveshark had a $.publish("gs.player.propchange") on PlayerController.propertyChange
             propertyChange: function sharkzapper_handle_propertyChange(props) {
@@ -221,6 +224,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
     sharkzapper.destroy = function destroy() {
         try {
             sharkzapper.listeners.unbind();
+            sharkzapper.overrides.undo();
         } catch(e) {
             console.error('cleanUp error:', e);    
         }

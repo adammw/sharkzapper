@@ -11,6 +11,141 @@
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
+var sharkzapper = new (function SharkZapperPopup(debug){
+    var sharkzapper = this;
+    sharkzapper.urls = {
+        albumartdefault: 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png',
+        albumartroot: 'http://beta.grooveshark.com/static/amazonart/'
+    }
+    sharkzapper.cache = {};
+    sharkzapper.listeners = {
+        bind: function bind_listners() {
+            // DOM Events
+            $(document).ready(sharkzapper.listeners.ready);
+            
+            // Chrome Events
+            chrome.extension.onRequest.addListener(sharkzapper.listeners.request);
+        },
+        unbind: function unbind_listeners() {
+            // DOM Events
+            //TODO
+            
+            // Chrome Events
+            chrome.extension.onRequest.removeListener(sharkzapper.listeners.request);
+        },
+        error: function handle_error(e) {
+            console.error('sharkzapper error:',e);
+        },
+        ready: function handle_ready(e) {
+            sharkzapper.ui.popup.init();
+        },
+        request: function handle_request(request, sender, sendResponse) {
+            //TODO: filter out requests from non-primary tabs
+            sharkzapper.message.recieve(request);
+        },  
+    };
+    sharkzapper.message = {
+        send: function message_send(data) {
+            data.source = "popup";
+            data.notification = $('body').hasClass('notification');
+            if (debug) data.timestamp = (new Date()).valueOf();
+            if (debug) console.log("sharkzapper:", ">>>", data.command, data);
+        	chrome.extension.sendRequest(data);
+        }, 
+        recieve: function message_recieve(data) {
+            if (debug) console.log("sharkzapper:", "<<<", data.command, data);
+            switch (data.command) {
+                case 'statusUpdate': 
+                    sharkzapper.ui.popup.update(data);
+                    //console.log('statusUpdate', sharkzapper.helpers.undelta(request.playbackStatus, 'playbackStatus'), request.playbackStatus);
+                    break;
+            }
+        }
+    };
+    sharkzapper.ui = {
+        popup: {
+            ready: false,
+            init: function ui_popup_init() {
+                sharkzapper.ui.popup.ready = true;
+                while (sharkzapper.ui.popup.updateQueue.length) {
+                    sharkzapper.ui.popup.update(sharkzapper.ui.popup.updateQueue.shift());
+                }
+            },
+            update: function update(status) {
+                if (!sharkzapper.ui.popup.ready) {
+                    sharkzapper.ui.popup.updateQueue.push(status);
+                    return;
+                }
+                if (!status.delta) {
+                    if (!status.playbackStatus) {
+                        //not playing
+                        //TODO
+                    }
+                }
+                if (status.playbackStatus) {
+                    if (status.playbackStatus.activeSong) {
+                        if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
+                            $('#songName').text(status.playbackStatus.activeSong.SongName);
+                        } 
+                        if (status.playbackStatus.activeSong.hasOwnProperty('AlbumName')) {
+    					    $('#albumName').text(status.playbackStatus.activeSong.AlbumName);
+					    }
+					    if (status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) {
+    					    $('#artistName').text(status.playbackStatus.activeSong.ArtistName);
+					    }
+					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
+                            $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 'm' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
+                        }
+                    }
+                    if (status.playbackStatus.hasOwnProperty('status')) {
+                        $('#songDetails, #albumart').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        $('#player_play_pause').toggleClass('pause', status.playbackStatus.status != 4);
+                    }
+                } 
+            },
+            updateQueue: []
+        }
+    };
+    sharkzapper.helpers = {
+        undelta: function undelta(new_data, key) {
+            if (!sharkzapper.cache[key]) {
+                sharkzapper.cache[key] = new_data;
+                return new_data;
+            } else {
+                var old_data = sharkzapper.cache[key];
+                var undelta_data = (function calc_undelta(new_data, old_data) {
+                    var undelta_data = {};
+                    for (i in old_data) {
+                        undelta_data[i] = old_data[i];
+                    }
+                    for (i in new_data) {
+                        if (typeof new_data[i] == 'object') {
+                            undelta_data[i] = calc_undelta(new_data[i], old_data[i]); 
+                        } else {
+                            undelta_data[i] = new_data[i];
+                        }
+                    }
+                    return undelta_data
+                })(new_data, old_data);
+                sharkzapper.cache[key] = undelta_data;
+                return undelta_data;
+            }
+        }
+    };
+    sharkzapper.init = function init() {
+        try {
+            sharkzapper.listeners.bind();
+        } catch (e) {
+            sharkzapper.listeners.error(e);
+        }
+        sharkzapper.message.send({"command":"popupInit"});
+        
+        return sharkzapper;
+    };
+    return this.init();
+})(1); //debug level: 0=none, 1=most, 2=all
+ 
+/*
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];
 var repeatMap = ["REPEAT_NONE","REPEAT_ALL","REPEAT_ONE"];
@@ -324,4 +459,4 @@ chrome.extension.onRequest.addListener(
 );	
 
 // Send a popupInit message when we have finished loading this script
-sendMessage({"command": "popupInit"}); 
+sendMessage({"command": "popupInit"}); */

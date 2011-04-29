@@ -11,6 +11,7 @@
  * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
+//TODO: Rewrite in similar style to popup and content script for 1.4+
 // Global variables
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var viewsDir = 'views/';

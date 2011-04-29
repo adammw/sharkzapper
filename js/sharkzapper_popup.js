@@ -113,7 +113,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     return;
                 }
                 if (!status.delta) {
-                    if (!status.playbackStatus) {
+                    if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
                         //not playing
                         $('#songDetails, #albumart').addClass('hidden');
                         $('#player_duration, #player_elapsed').text('');
@@ -150,7 +150,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                             //TODO
                         }
                     }
-                } 
+                }
+                if (status.playbackProperties) {
+                    if (status.playbackProperties.hasOwnProperty('isMuted')) {
+                        $('#player_volume').toggleClass('mute', status.playbackProperties.isMuted);
+                    }
+                }
             },
             updateQueue: []
         }

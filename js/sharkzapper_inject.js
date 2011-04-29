@@ -28,7 +28,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
     sharkzapper.overrides = {
         init: function init_overrides() {
             sharkzapper.helpers.execWhenReady(function playerOverride() {
-                GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
+                sharkzapper.cache.playbackProperties = GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
             },'playerOverride','onPlayerReady');
         },
         undo: function undo_overrides() {
@@ -73,6 +73,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             
             // GS Events
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.propchange"]);
             if (sharkzapper.listeners.subscriptions["gs.app.ready"]) {
                 $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             }
@@ -162,12 +163,23 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     
                 // Command called by popup to get a forced status update, usually cached but may be fresh if cache unavailable
                 case 'updateStatus':
-                    if (sharkzapper.cache.playbackStatus) {
-                        sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
+                    if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackProperties) {
+                        sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "playbackProperties": sharkzapper.cache.playbackProperties, "cached":true, "delta":false});
                     } else {
-                        sharkzapper.helpers.execWhenReady(function updateStatus() {
-                            sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
-                        },'updateStatus');
+                        if (sharkzapper.cache.playbackStatus) {
+                            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
+                        } else {
+                            sharkzapper.helpers.execWhenReady(function updateStatus() {
+                                sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);
+                            },'updateStatus');
+                        }
+                        if (sharkzapper.cache.playbackProperties) {
+                            sharkzapper.message.send({"command": "statusUpdate", "playbackProperties": sharkzapper.cache.playbackProperties, "cached":true, "delta":false});
+                        } else {
+                            sharkzapper.helpers.execWhenReady(function updateProperties() {
+                                sharkzapper.listeners.propchange(GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange"), true);
+                            },'updateProperties','onPlayerReady');
+                        }
                     }                
                     break;
                     

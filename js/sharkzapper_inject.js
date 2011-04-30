@@ -81,6 +81,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // GS Events
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.propchange"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.queuechange"]);
             if (sharkzapper.listeners.subscriptions["gs.app.ready"]) {
                 $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             }
@@ -212,7 +213,22 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (!sharkzapper.gs_ready) return;
 	                
 	                Grooveshark.togglePlayPause();
-	                break;           
+	                break;      
+                case "prevSong":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.previous()
+                    break;
+                case "nextSong":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.next()
+                    break;
+                case "setShuffle": 
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    GS.player.setShuffle(data.shuffle);
+                    break;
             }
         }
     };

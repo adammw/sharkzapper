@@ -74,15 +74,27 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         listeners: { 
             bind: function bind_ui_listeners() {
                 $("#volumeSlider").bind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
+                $('#grooveshark').bind('click', sharkzapper.ui.listeners.groovesharkLogoClick);
                 $('#player_volume').bind('click', sharkzapper.ui.listeners.volumeClick);
                 $('#player_play_pause').bind('click', sharkzapper.ui.listeners.playPauseClick);
+                $('#player_previous').bind('click', sharkzapper.ui.listeners.previousClick);
+	            $('#player_next').bind('click', sharkzapper.ui.listeners.nextClick);
+	            $('#player_shuffle').bind('click', sharkzapper.ui.listeners.shuffleClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
+                $('#grooveshark').unbind('click', sharkzapper.ui.listeners.groovesharkLogoClick);
                 $('#player_volume').unbind('click', sharkzapper.ui.listeners.volumeClick);
                 $('#player_play_pause').unbind('click', sharkzapper.ui.listeners.playPauseClick);
+                $('#player_previous').unbind('click', sharkzapper.ui.listeners.previousClick);
+	            $('#player_next').unbind('click', sharkzapper.ui.listeners.nextClick);
+	            $('#player_shuffle').unbind('click', sharkzapper.ui.listeners.shuffleClick);
+            },
+            groovesharkLogoClick: function handle_groovesharkLogoClick(e) {
+                sharkzapper.message.send({"command":"openGSTab"});
             },
             playPauseClick: function handle_playPauseClick(e) {
+                sharkzapper.message.send({"command": "togglePlayPause"});
                 //TODO check what to do for PLAY_STATUS_COMPLETE
                 /*
                 // if paused
@@ -92,6 +104,15 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 		        // else (hence is playing)
 			        sendMessage({"command": "pauseSong"});
 		        */
+            },
+            previousClick: function handle_previousClick(e) {
+                sharkzapper.message.send({"command": "prevSong"});
+            },
+            nextClick: function handle_nextClick(e) {
+                sharkzapper.message.send({"command": "nextSong"});
+            },
+            shuffleClick: function handle_shuffleClick(e) {
+                sharkzapper.message.send({"command": "setShuffle", "shuffle": !$('#player_shuffle').hasClass('active')});
             },
             volumeClick: function handle_volumeClick(e) {
                 sharkzapper.message.send({"command":"toggleMute"});
@@ -138,7 +159,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
                         $('#songDetails, #albumart, #lowerControls, #player_controls_right').addClass('hidden');
                         $('#player_play_pause').addClass('disabled').removeClass('pause');
-                        $('#player_play_pause').attr('disabled','disabled');
+                        $('#player_play_pause, #player_controls_right button').attr('disabled','disabled');
                         $('#player_duration, #player_elapsed').text('');
                         //TODO
                     }
@@ -168,14 +189,19 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         // Hides thumbnail and most controls when not playing
                         $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
                         
+                        // Show pause button when playing
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING
+                        
+                        // Show buffering logo when PLAY_STATUS_INITIALIZING, PLAY_STATUS_LOADING or PLAY_STATUS_BUFFERING
+                        $('#player_play_pause').toggleClass('buffering', (status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5));
+                        $('#bufferinglogo').toggleClass('hidden', !(status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5)); 
 
-                        // Disable play/pause
-                        $('#player_play_pause').toggleClass('disabled', status.playbackStatus.status == 0); //PLAY_STATUS_NONE
+                        // Disable play/pause, shuffle, repeat and xfade buttons
+                        $('#player_play_pause, #player_controls_right button').toggleClass('disabled', status.playbackStatus.status == 0); //PLAY_STATUS_NONE
                         if (status.playbackStatus.status == 0) { //TODO: fix needed for when queue has songs but is still PLAY_STATUS_NONE
-                            $('#player_play_pause').attr('disabled','disabled');
+                            $('#player_play_pause, #player_controls_right button').attr('disabled','disabled');
                         } else {
-                            $('#player_play_pause').removeAttr('disabled');
+                            $('#player_play_pause, #player_controls_right button').removeAttr('disabled');
                         }
                         
                         // PLAY_STATUS_NONE, PLAY_STATUS_INITIALIZING, PLAY_STATUS_FAILED or PLAY_STATUS_COMPLETED:
@@ -199,6 +225,22 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     if (status.queue.hasOwnProperty('repeatMode')) {
                         $('#player_loop').toggleClass('active', Boolean(status.queue.repeatMode));
 					    $('#player_loop').toggleClass('one', status.queue.repeatMode == 2); //REPEAT_ONE
+                    }
+                    if (status.queue.hasOwnProperty('previousSong')) {
+                        if (status.queue.previousSong) {
+                            console.log('has prev song');
+                            $('#player_previous').removeAttr('disabled');
+                        } else {
+                        console.log('has no prev song');
+                            $('#player_previous').attr('disabled','disabled');
+                        }
+                    }
+                    if (status.queue.hasOwnProperty('nextSong')) {
+                        if (status.queue.nextSong) {
+                            $('#player_next').removeAttr('disabled');
+                        } else {
+                            $('#player_next').attr('disabled','disabled');
+                        }
                     }
                 }
             },

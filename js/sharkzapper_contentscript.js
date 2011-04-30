@@ -57,8 +57,7 @@ function inject_sharkzapper() {
 
     function sendMessage(message) {
         if (debug) console.log('sharkzapper:', '>(M)C>', message);
-        //TODO: Change origin to allow communication on preview.grooveshark.com
-        window.postMessage(JSON.stringify(message), "http://grooveshark.com");
+        window.postMessage(JSON.stringify(message), location.origin);
     }
 
     function recieveRequest(request, sender, sendResponse) {

@@ -60,11 +60,15 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     sharkzapper.ui.popup.update(data);
                     
                     // Update cache
-                    if (data.hasOwnProperty('playbackStatus')) {
-                        sharkzapper.helpers.undelta(data.playbackStatus, 'playbackStatus');
-                    }
-                    if (data.hasOwnProperty('playbackProperties')) {
-                        sharkzapper.helpers.undelta(data.playbackProperties, 'playbackProperties');
+                    try {
+                        if (data.hasOwnProperty('playbackStatus')) {
+                            sharkzapper.helpers.undelta(data.playbackStatus, 'playbackStatus');
+                        }
+                        if (data.hasOwnProperty('playbackProperties')) {
+                            sharkzapper.helpers.undelta(data.playbackProperties, 'playbackProperties');
+                        }
+                    } catch(e) {
+                        console.error('undelta err:',e);
                     }
                     break;
             }
@@ -80,6 +84,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#player_previous').bind('click', sharkzapper.ui.listeners.previousClick);
 	            $('#player_next').bind('click', sharkzapper.ui.listeners.nextClick);
 	            $('#player_shuffle').bind('click', sharkzapper.ui.listeners.shuffleClick);
+	            $('#player_loop').bind('click', sharkzapper.ui.listeners.loopClick);
+	            $('#player_crossfade').bind('click', sharkzapper.ui.listeners.crossfadeClick);
+	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -89,12 +96,38 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#player_previous').unbind('click', sharkzapper.ui.listeners.previousClick);
 	            $('#player_next').unbind('click', sharkzapper.ui.listeners.nextClick);
 	            $('#player_shuffle').unbind('click', sharkzapper.ui.listeners.shuffleClick);
+	            $('#player_loop').unbind('click', sharkzapper.ui.listeners.loopClick);
+	            $('#player_crossfade').unbind('click', sharkzapper.ui.listeners.crossfadeClick);
+	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
+            },
+            addToLibraryClick: function handle_addToLibraryClick(e) {
+                if ($('#addToLibraryBtn').hasClass('selected')) {
+			        sharkzapper.message.send({"command": "removeFromLibrary"});
+		        } else {
+			        sharkzapper.message.send({"command": "addToLibrary"});
+		        }
+            },
+            loopClick: function handle_loopClick(e) {
+                if ($('#player_loop').hasClass("active") && $('#player_loop').hasClass("one")) {
+                    sharkzapper.message.send({"command": "setRepeat", "repeatMode": 0}); //REPEAT_NONE
+                } else if ($('#player_loop').hasClass("active")) {
+                    sharkzapper.message.send({"command": "setRepeat", "repeatMode": 2}); //REPEAT_ONE
+                } else {
+                    sharkzapper.message.send({"command": "setRepeat", "repeatMode": 1}); //REPEAT_ALL
+                }
+            },
+            crossfadeClick: function handle_crossfadeClick(e) {
+                sharkzapper.message.send({"command": "setCrossfadeEnabled", "enabled": !$('#player_crossfade').hasClass('active')});
             },
             groovesharkLogoClick: function handle_groovesharkLogoClick(e) {
                 sharkzapper.message.send({"command":"openGSTab"});
             },
             playPauseClick: function handle_playPauseClick(e) {
-                sharkzapper.message.send({"command": "togglePlayPause"});
+                if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.status == 7) { //PLAY_STATUS_COMPLETED
+                    sharkzapper.message.send({"command": "playSong"});
+                } else {
+                    sharkzapper.message.send({"command": "togglePlayPause"});
+                }
                 //TODO check what to do for PLAY_STATUS_COMPLETE
                 /*
                 // if paused
@@ -177,6 +210,13 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
+                        }
+                        //TODO: change link title depending on action
+                        if (status.playbackStatus.activeSong.hasOwnProperty('fromLibrary')) {
+                            $('#addToLibraryBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.fromLibrary));
+                        }
+                        if (status.playbackStatus.activeSong.hasOwnProperty('isFavorite')) {
+                            $('#addToFavoritesBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.isFavorite));
                         }
                     }
                     if (status.playbackStatus.hasOwnProperty('duration')) {

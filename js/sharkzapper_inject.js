@@ -57,22 +57,31 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // GS Events
             sharkzapper.listeners.subscriptions["gs.app.ready"] = $.subscribe("gs.app.ready", sharkzapper.listeners.ready);
             sharkzapper.listeners.subscriptions["gs.player.playstatus"] = $.subscribe("gs.player.playstatus", sharkzapper.listeners.playstatus);
+            sharkzapper.listeners.subscriptions["gs.auth.library.songsAdded"] = $.subscribe("gs.auth.library.songsAdded", sharkzapper.listeners.songsAddedToLibrary);
+            sharkzapper.listeners.subscriptions["gs.auth.library.remove"] = $.subscribe("gs.auth.library.remove", sharkzapper.listeners.songRemovedFromLibrary);
+            sharkzapper.listeners.subscriptions["gs.auth.favorites.songs.add"] = $.subscribe("gs.auth.favorites.songs.add", sharkzapper.listeners.songAddedToFavorites);
+            sharkzapper.listeners.subscriptions["gs.auth.favorites.songs.remove"] = $.subscribe("gs.auth.favorites.songs.remove", sharkzapper.listeners.songRemovedFromFavorites);
             
             // Custom Events - see overrides
             sharkzapper.listeners.subscriptions["gs.player.propchange"] = $.subscribe("gs.player.propchange", sharkzapper.listeners.propchange);
             sharkzapper.listeners.subscriptions["gs.player.queuechange"] = $.subscribe("gs.player.queuechange", sharkzapper.listeners.queuechange);
             
             // Fake the gs.app.ready event (needed when injected after it has already fired)
-            if (document.readyState == 'complete') {
+            //if (document.readyState == 'complete') {
                 $(document).ready(function() {
-                    setTimeout(function() {
+                    setTimeout(function gschecker() {
                         if (!sharkzapper.gs_ready) {
-                            if (debug) console.log('overriding gs.app.ready');
-                            sharkzapper.listeners.ready();
+                            if (window.GS) {
+                                if (debug) console.log('overriding gs.app.ready');
+                                sharkzapper.listeners.ready();
+                            } else {
+                                if (debug) console.log('no window.GS, will recheck in 200ms');
+                                setTimeout(gschecker, 200);
+                            }
                         } 
                     }, 200);
                 });
-            }
+            //}
         },
         unbind: function unbind_listeners() {
             // DOM Events
@@ -82,6 +91,10 @@ var sharkzapper = new (function SharkZapperPage(debug){
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.propchange"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.queuechange"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.library.songsAdded"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.library.remove"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.favorites.songs.add"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.favorites.songs.remove"]);
             if (sharkzapper.listeners.subscriptions["gs.app.ready"]) {
                 $.unsubscribe(sharkzapper.listeners.subscriptions["gs.app.ready"]);
             }
@@ -145,20 +158,70 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // Pass to message.recieve
             sharkzapper.message.recieve(request);           
         }, 
-        playstatus: function handle_playstatus(status, noDelta) {
+        playstatus: function handle_playstatus(status, noDelta, cached) {
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackStatus');
-            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": status, "cached": false, "delta": !Boolean(noDelta)});
+            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": status, "cached": Boolean(cached), "delta": !Boolean(noDelta)});
         },
-        propchange: function handle_propchange(status, noDelta) {
+        propchange: function handle_propchange(status, noDelta, cached) {
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackProperties');
-            sharkzapper.message.send({"command": "statusUpdate", "playbackProperties": status, "cached": false, "delta": !Boolean(noDelta)});
+            sharkzapper.message.send({"command": "statusUpdate", "playbackProperties": status, "cached": Boolean(cached), "delta": !Boolean(noDelta)});
         },
         queuechange: function handle_queuechange(change) {
             if (debug) console.log('queuechange',change.type, change);
             if (change.type == 'propertyChange' || change.type == 'queueReset') {
                 // simplify change because we don't care about most of the things and we don't want to waste time sending useless data
                 // then send it
-                sharkzapper.message.send({"command": "statusUpdate", "queue": sharkzapper.helpers.simplifyQueue(change.details), "cached": false, "delta": true});
+                if (sharkzapper.helpers.simplifyQueue(change.details)) {
+                    sharkzapper.message.send({"command": "statusUpdate", "queue": change.details, "cached": false, "delta": true});
+                } else {
+                    if (debug) console.log('withheld queueChange, no change after simplification');
+                }
+            }            
+        },
+        songsAddedToLibrary: function handle_songsAddedToLibrary(songs) {
+            if (debug) console.log(songs.songs.length, 'songsAddedToLibrary', songs.songs);
+            var songId = sharkzapper.helpers.getCurrentSongID();
+            if (!songId) return;
+            for (i in songs.songs) {
+                // Current playing song added
+                if (songs.songs[i].songID == songId) {
+                    // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
+                    sharkzapper.cache.playbackStatus.activeSong.fromLibrary = 1; 
+                    sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"fromLibrary": 1}}, "cached": false, "delta": true});
+                }
+            }
+        },
+        songRemovedFromLibrary: function handle_songRemovedFromLibrary(songs) {
+            if (debug) console.log('songRemovedFromLibrary', songs);
+            var songId = sharkzapper.helpers.getCurrentSongID();
+            if (!songId) return;
+            // Current playing song removed
+            if (songs.SongID == songId) {
+                // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
+                sharkzapper.cache.playbackStatus.activeSong.fromLibrary = 0; 
+                sharkzapper.cache.playbackStatus.activeSong.isFavorite = 0; 
+                sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"fromLibrary": 0, "isFavorite": 0}}, "cached": false, "delta": true});
+            }
+        },
+        songAddedToFavorites: function handle_songAddedToFavorites(songs) {
+            if (debug) console.log('songAddedToFavorites', songs);
+            var songId = sharkzapper.helpers.getCurrentSongID();
+            if (!songId) return;
+            // Current playing song added
+            if (songs.SongID == songId) {
+                // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
+                sharkzapper.cache.playbackStatus.activeSong.isFavorite = 1; 
+                sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"isFavorite": 1}}, "cached": false, "delta": true});
+            }
+        },
+        songRemovedFromFavorites: function handle_songRemovedFromFavorites(songs) {
+            if (debug) console.log('songRemovedFromFavorites', songs);
+            var songId = sharkzapper.helpers.getCurrentSongID();
+            if (!songId) return;
+            // Current playing song removed
+            if (songs.SongID == songId) {
+                sharkzapper.cache.playbackStatus.activeSong.isFavorite = 0; 
+                sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"isFavorite": 0}}, "cached": false, "delta": true});
             }            
         }
     };
@@ -199,8 +262,13 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     }
                     //TODO: cache data like the rest of them 
                     sharkzapper.helpers.execWhenReady(function updateQueue() {
-                        sharkzapper.message.send({"command": "statusUpdate", "queue": sharkzapper.helpers.simplifyQueue(GS.player.getCurrentQueue()), "cached": false, "delta": false});
-                    },'updateQueue','onPlayerReady');                
+                        var queue = $.extend({}, GS.player.getCurrentQueue());
+                        if (sharkzapper.helpers.simplifyQueue(queue)) {
+                            sharkzapper.message.send({"command": "statusUpdate", "queue": queue, "cached": false, "delta": false});
+                        }
+                    },'updateQueue','onPlayerReady');  
+                    
+                    //TODO: update isFavorite and fromLibrary!              
                     break;
                     
                 /* Commands */
@@ -213,7 +281,17 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (!sharkzapper.gs_ready) return;
 	                
 	                Grooveshark.togglePlayPause();
-	                break;      
+	                break;   
+                case "playSong":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.play();
+                    break;
+                case "pauseSong":
+                    if (!sharkzapper.gs_ready) return;
+                
+                    Grooveshark.pause();
+                    break;
                 case "prevSong":
                     if (!sharkzapper.gs_ready) return;
                     
@@ -228,6 +306,36 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (!sharkzapper.gs_ready) return;
                     
                     GS.player.setShuffle(data.shuffle);
+                    break;
+                case "setRepeat":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    GS.player.setRepeat(data.repeatMode);                    
+                    break;
+                case "setCrossfadeEnabled":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    GS.player.setCrossfadeEnabled(data.enabled);
+                    break;
+                case "addToLibrary":
+                    if (!sharkzapper.gs_ready) return;
+                    var songId = data.songId;
+                    if (!songId) {
+                        var curSong = GS.player.getCurrentSong();
+                        if (!curSong || curSong.SongID < 1) return;
+                        songId = curSong.SongID;
+                    }
+                    GS.user.addToLibrary(songId);
+                    break;
+                case "removeFromLibrary":
+                    if (!sharkzapper.gs_ready) return;
+                    var songId = data.songId;
+                    if (!songId) {
+                        var curSong = GS.player.getCurrentSong();
+                        if (!curSong || curSong.SongID < 1) return;
+                        songId = curSong.SongID;
+                    }
+                    GS.user.removeFromLibrary(songId);
                     break;
             }
         }
@@ -289,7 +397,18 @@ var sharkzapper = new (function SharkZapperPage(debug){
             if (queue.hasOwnProperty('songs') && queue.songs instanceof Array) {
                 queue.songs = queue.songs.length;
             }
-            return queue;
+            return _.count(queue);
+        },
+        getCurrentSongID: function getCurrentSongID() {
+            if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.activeSong) {
+                return sharkzapper.cache.playbackStatus.activeSong.SongID;
+            } else if (sharkzapper.gs_player_ready) {
+                var curSong = GS.player.getCurrentSong();
+                if (!curSong || !curSong.SongID) return false;
+                return curSong.SongID;
+            } else {
+                return false;
+            }
         }
     };
     sharkzapper.destroy = function destroy() {

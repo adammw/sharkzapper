@@ -237,7 +237,18 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (debug) console.log('withheld queueChange, no change after simplification');
                 }
             } else if (change.type == 'contentChange') {
-                sharkzapper.message.send({"command": "statusUpdate", "queue": {"songs": change.details.items.length}, "cached": false, "delta": true});
+                // Manually update cache
+                if (!sharkzapper.cache.playbackStatus) {
+                    sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                }
+                sharkzapper.cache.playbackStatus.activeSong.index = change.fullQueue.activeSong.index;
+            
+                // Prepare and send update
+                var message = {"command": "statusUpdate", "playbackStatus": {"activeSong": {"index": change.fullQueue.activeSong.index}}, "cached": false, "delta": true};
+                if (change.details.kind != 'move') {
+                    message.queue = {"songs": change.fullQueue.songs.length};
+                }
+                sharkzapper.message.send(message);
             } 
         },
         sharkzapperPage: function handle_sharkzapperPage(pageType) {

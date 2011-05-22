@@ -208,21 +208,26 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 // Check for notification indication
                 $('body').toggleClass('notification', location.hash == '#notification');
                 
-                // Initalise jQuery UI components
                 try {
+                    // Initalise jQuery UI components
                     $("#volumeSlider").slider({
                         orientation: "horizontal",
                         range: "min",
                         min: 0,
                         max: 100
                     });
+                    
+                    // Bind listeners
                     sharkzapper.ui.listeners.bind();
+                    
+                    // Set Ready
                     sharkzapper.ui.popup.ready = true;
                 } catch(e) {
                     console.error('ui_popup_init: fatal error',e);
                     return;
                 }
                 
+                // Perform all queued updates
                 if (debug) console.log('ui ready, performing',sharkzapper.ui.popup.updateQueue.length,'queued status updates');
                 while (sharkzapper.ui.popup.updateQueue.length) {
                     sharkzapper.ui.popup.update(sharkzapper.ui.popup.updateQueue.shift());
@@ -308,13 +313,13 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', status.playbackStatus.status >= 6);
                         
                         // Changes body size when not playing
-                        $('body').toggleClass('notPlaying', status.playbackStatus.status >= 6);
+                        $('body').toggleClass('notPlaying', status.playbackStatus.status >= 6); //TODO: eliminate "bounce" when using radio (status intermittently goes PLAY_STATUS_COMPLETED)
                         
                         // Show pause button when playing
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING
                         
                         // Show buffering logo when PLAY_STATUS_INITIALIZING, PLAY_STATUS_LOADING or PLAY_STATUS_BUFFERING
-                        $('#player_play_pause').toggleClass('buffering', (status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5));
+                        $('#player_play_pause').toggleClass('buffering', (status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5)); 
                         $('#bufferinglogo').toggleClass('hidden', !(status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5)); 
                     }
                 }

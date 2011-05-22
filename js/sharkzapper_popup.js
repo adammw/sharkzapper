@@ -76,7 +76,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
     };
     sharkzapper.ui = {
         timeouts: {
-            scrollables: []
+            scrollables: [],
+            volumeSlider: null
         },
         listeners: { 
             bind: function bind_ui_listeners() {
@@ -96,6 +97,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
+	            $('#player_volume').bind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
+	            $('#player_volume').bind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
+	            $('#volumeSlider').bind('mouseenter', sharkzapper.ui.listeners.volumeSliderMouseEnter);
+	            $('#volumeSlider').bind('mouseleave', sharkzapper.ui.listeners.volumeSliderMouseLeave);
+	            $('#volumeSlider').bind('slidestart', sharkzapper.ui.listeners.volumeSliderSlideStart);
+	            $('#volumeSlider').bind('slideend', sharkzapper.ui.listeners.volumeSliderSlideEnd);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -114,6 +121,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
+	            $('#player_volume').unbind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
+	            $('#player_volume').unbind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
+	            $('#volumeSlider').unbind('mouseenter', sharkzapper.ui.listeners.volumeSliderMouseEnter);
+	            $('#volumeSlider').unbind('mouseleave', sharkzapper.ui.listeners.volumeSliderMouseLeave);
+	            $('#volumeSlider').bind('slidestart', sharkzapper.ui.listeners.volumeSliderSlideStart);
+	            $('#volumeSlider').bind('slideend', sharkzapper.ui.listeners.volumeSliderSlideEnd);
             },
             searchSubmit: function handle_searchSubmit(e) {
                 e.preventDefault();
@@ -194,11 +207,37 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             volumeClick: function handle_volumeClick(e) {
                 sharkzapper.message.send({"command":"toggleMute"});
             },
+            volumeBtnMouseEnter: function handle_volumeBtnMouseEnter(e) {
+                $("#volumeControl").fadeIn(200).focus();
+            },
+            volumeBtnMouseLeave: function handle_volumeBtnMouseLeave(e) {
+                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+                sharkzapper.ui.timeouts.volumeSlider = setTimeout(sharkzapper.ui.listeners.volumeSliderTimeout,1200);
+            },
+            volumeSliderMouseEnter: function handle_volumeSliderMouseEnter(e) {
+                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+            },
+            volumeSliderMouseLeave: function handle_volumeSliderMouseLeave(e) {
+                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+                sharkzapper.ui.timeouts.volumeSlider = setTimeout(sharkzapper.ui.listeners.volumeSliderTimeout,600);
+            },
+            volumeSliderSlideStart: function handle_volumeSliderSlideStart(e) {
+                $(this).data('sliding',true);
+            }, 
+            volumeSliderSlideEnd: function handle_volumeSliderSlideEnd(e) {
+                $(this).data('sliding',false);
+                if ($(this).data('slideendvalue')) {
+                    $('#volumeSlider').slider("option", "value", $(this).data('slideendvalue'));
+                }
+            },
+            volumeSliderTimeout: function handle_volumeSliderTimeout() {
+                $("#volumeControl").fadeOut(200).blur();
+            },
             volumeUpdate: function handle_volumeUpdate(e,b) {
                 // Filter out programattic changes
                 if (!e.originalEvent) return;
                 
-                //sendMessage({"command":"volumeUpdate","volume":$('#volumeSlider').slider("option", "value")});
+                sharkzapper.message.send({"command":"volumeUpdate","volume": b.value});
                 if (debug) console.log('vol:',e,b);
             }
         },
@@ -214,7 +253,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         orientation: "horizontal",
                         range: "min",
                         min: 0,
-                        max: 100
+                        max: 100, 
+                        value: 100
                     });
                     
                     // Bind listeners
@@ -329,6 +369,15 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     }
                     if (status.playbackProperties.hasOwnProperty('crossfadeEnabled')) {
                         $('#player_crossfade').toggleClass('active', status.playbackProperties.crossfadeEnabled);
+                    }
+                    if (status.playbackProperties.hasOwnProperty('volume')) {
+                        if ($("#volumeSlider").data('sliding')) { //Don't update the volume when sliding or else jerkiness occurs
+                            $('#volumeSlider').data("slideendvalue", status.playbackProperties.volume);
+                            console.log('not updaing because sliding');
+                        } else { 
+                            $('#volumeSlider').slider("option", "value", status.playbackProperties.volume);
+                            console.log('not sliding so updating');
+                        }
                     }
                 }
                 if (status.queue) {

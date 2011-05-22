@@ -205,6 +205,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         popup: {
             ready: false,
             init: function ui_popup_init() {
+                // Check for notification indication
+                $('body').toggleClass('notification', location.hash == '#notification');
+                
                 // Initalise jQuery UI components
                 try {
                     $("#volumeSlider").slider({

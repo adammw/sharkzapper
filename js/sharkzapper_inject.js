@@ -449,6 +449,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     
                     Grooveshark.voteCurrentSong(data.vote);
                     break;
+                case "volumeUpdate":
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.setVolume(data.volume);
+                    break;
                 case "setShuffle": 
                     if (!sharkzapper.gs_ready) return;
                     

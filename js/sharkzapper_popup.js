@@ -378,10 +378,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     if (status.playbackProperties.hasOwnProperty('volume')) {
                         if ($("#volumeSlider").data('sliding')) { //Don't update the volume when sliding or else jerkiness occurs
                             $('#volumeSlider').data("slideendvalue", status.playbackProperties.volume);
-                            console.log('not updaing because sliding');
                         } else { 
                             $('#volumeSlider').slider("option", "value", status.playbackProperties.volume);
-                            console.log('not sliding so updating');
                         }
                     }
                 }

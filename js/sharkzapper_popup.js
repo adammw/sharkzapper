@@ -92,6 +92,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
+	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -109,6 +110,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
+	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
+            },
+            searchSubmit: function handle_searchSubmit(e) {
+                e.preventDefault();
+                if (!$('#searchBox').val().length) return;
+                sharkzapper.message.send({"command": "openGSTab", "url": "#/search?q=" + escape($('#searchBox').val())});
             },
             addToFavoritesClick: function handle_addToFavoritesClick(e) {
                 if ($('#addToFavoritesBtn').hasClass('selected')) {

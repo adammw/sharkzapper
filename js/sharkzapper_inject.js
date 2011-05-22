@@ -236,7 +236,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 } else {
                     if (debug) console.log('withheld queueChange, no change after simplification');
                 }
-            }            
+            } else if (change.type == 'contentChange') {
+                sharkzapper.message.send({"command": "statusUpdate", "queue": {"songs": change.details.items.length}, "cached": false, "delta": true});
+            } 
         },
         sharkzapperPage: function handle_sharkzapperPage(pageType) {
             this.pageType = pageType || 'settings';

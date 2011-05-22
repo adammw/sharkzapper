@@ -13,7 +13,6 @@ var sharkzapper = new (function SharkZapperOptions(debug) {
             var inputs = document.querySelectorAll('input');
             var settings = sharkzapper.cachedSettings;
             for (var i=0;i<inputs.length;i++) {
-                console.log(i, inputs[i], inputs[i].id);
                 if (inputs[i].id.indexOf('settings_sharkzapper_') == 0) {
                     settings[inputs[i].id.replace('settings_sharkzapper_','')] = Boolean(inputs[i].checked);
                 }

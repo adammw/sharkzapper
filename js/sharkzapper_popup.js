@@ -18,6 +18,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         albumartroot: 'http://beta.grooveshark.com/static/amazonart/'
     }
     sharkzapper.cache = {};
+    sharkzapper.settings = {};
     sharkzapper.listeners = {
         bind: function bind_listners() {
             // DOM Events
@@ -70,6 +71,15 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     } catch(e) {
                         console.error('undelta err:',e);
                     }
+                    break;
+                case 'settingsUpdate':
+                    var oldSettings = $.extend({},sharkzapper.settings);
+                
+                    // Save new settings
+                    sharkzapper.settings = $.extend({}, sharkzapper.settings, data.settings);
+                    
+                    // Update UI
+                    sharkzapper.ui.popup.settingsUpdate(oldSettings, sharkzapper.settings);
                     break;
             }
         }
@@ -213,6 +223,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 sharkzapper.message.send({"command":"toggleMute"});
             },
             volumeBtnMouseEnter: function handle_volumeBtnMouseEnter(e) {
+                console.log('showVolumeControlOnHover',sharkzapper.settings.showVolumeControlOnHover);
+                if (sharkzapper.settings.hasOwnProperty('showVolumeControlOnHover') && !sharkzapper.settings.showVolumeControlOnHover) return;
                 $("#volumeControl").fadeIn(200).focus();
             },
             volumeBtnMouseLeave: function handle_volumeBtnMouseLeave(e) {
@@ -319,7 +331,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('index')) {
                             $('#queue_current_position').text(status.playbackStatus.activeSong.index+1);
-                            $('#queue_position').removeClass('hidden');
+                            if (!sharkzapper.settings.hasOwnProperty('showQueuePosition') || sharkzapper.settings.showQueuePosition) {
+                                $('#queue_position').removeClass('hidden');
+                            }
                         }
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('fromLibrary')) {
@@ -369,7 +383,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                             PLAY_STATUS_COMPLETED: 7, */
                     
                         // Hides thumbnail and most controls when PLAY_STATUS_FAILED
-                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', status.playbackStatus.status == 6);
+                        $('#songDetails, #lowerControls').toggleClass('hidden', status.playbackStatus.status == 6);
+                        $('#player_controls_right').toggleClass('hidden', status.playbackStatus.status == 6 || (sharkzapper.settings.hasOwnProperty('showQueueButtons') && !sharkzapper.settings.showQueueButtons));
+                        $('#albuma!newSettings.showAlbumArtrt').toggleClass('hidden', status.playbackStatus.status == 6 || (sharkzapper.settings.hasOwnProperty('showAlbumArt') && !sharkzapper.settings.showAlbumArt));
                         
                         // Changes body size when not playing
                         $('body').toggleClass('notPlaying', status.playbackStatus.status == 6); //PLAY_STATUS_FAILED
@@ -429,6 +445,28 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#queue_position_separator, #queue_total').toggleClass('hidden',!status.queue.songs);
                     }
                 }
+            },
+            settingsUpdate: function settingsUpdate(oldSettings, newSettings) {
+                if (newSettings.hasOwnProperty('showPlaybackButtons')) {
+                    $('#player_controls_playback').toggleClass('hidden', !newSettings.showPlaybackButtons);
+                }
+                if (newSettings.hasOwnProperty('showQueueButtons')) {
+                    $('#player_controls_right').toggleClass('hidden', !newSettings.showQueueButtons);
+                }
+                if (newSettings.hasOwnProperty('showQueuePosition')) {
+                    $('#queue_position').toggleClass('hidden', !newSettings.showQueuePosition);
+                }
+                if (newSettings.hasOwnProperty('showMuteButton')) {
+                    $('#player_volume').toggleClass('hidden', !newSettings.showMuteButton);
+                }
+                if (newSettings.hasOwnProperty('showSearchBox')) {
+                    $('#search').toggleClass('hidden', !newSettings.showSearchBox);
+                }
+                if (newSettings.hasOwnProperty('showAlbumArt')) {
+                    $('#albumart').toggleClass('hidden', !newSettings.showAlbumArt);
+                    $('body').toggleClass('noAlbumArt', !newSettings.showAlbumArt);
+                }
+                //TODO: Other options un-implemented
             },
             updateQueue: [],
             updateScrollables: function() {
@@ -502,6 +540,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             sharkzapper.listeners.error(e);
         }
         sharkzapper.message.send({"command":"popupInit"});
+        sharkzapper.message.send({"command":"fetchSettings"}); //TODO: Incorporate into popupInit request
         if (debug) console.time('firstStatus');
         
         return sharkzapper;

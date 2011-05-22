@@ -7,16 +7,13 @@ body {
 body.notification {
     min-height: 115px;
 }
-body.noAlbumArt {
-    min-width: 200px;
-}
 body.notPlaying {
 	min-height: 60px;
 }
 a, a:hover {
     color: white !important;
 }
-.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position, body.notPlaying #player_controls_right, body.noAlbumArt #thumbnail { display: none !important; }
+.hidden, body.notification #pin, body.notification #search, body.notPlaying #albumart, body.notPlaying #songDetails, body.notPlaying #player_volume, body.notPlaying #playerDetails_nowPlaying, body.notPlaying #queue_position, body.notPlaying #player_controls_right { display: none !important; }
 .fltlft { float: left; }
 .fltrht { float: right; }
 #thumbnail { overflow: hidden; }
@@ -40,6 +37,11 @@ body.notification.paused:not(.notPlaying) #thumbnail #player_controls_playback {
     height: 40px;
     -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
     -webkit-transition-delay: 0;
+}
+body.noAlbumArt #thumbnail #player_controls_playback {
+    opacity: 0.96;
+    height: 40px;
+    margin-top: 0;
 }
 #player_controls_right {
     margin-top: -40px;
@@ -79,9 +81,6 @@ body #songDetails div.scrollable {
     right: 115px;
     top: 12px;
 }
-body.noAlbumArt #pin {
-    right: 15px;
-}
 #settingsBtn {
     position: absolute;
     right: 136px;
@@ -90,14 +89,8 @@ body.noAlbumArt #pin {
     width: 16px;
     background: transparent url(../img/settings_icon.png) no-repeat;
 }
-body.noAlbumArt #settingsBtn {
-    right: 36px;
-}
 body.notification #settingsBtn, #settingsBtn.noPin {
     right: 118px;
-}
-body.noAlbumArt.notification #settingsBtn, body.noAlbumArt #settingsBtn.noPin {
-    right: 18px;
 }
 #thumbnail {
 	position: absolute;
@@ -107,6 +100,11 @@ body.noAlbumArt.notification #settingsBtn, body.noAlbumArt #settingsBtn.noPin {
 	-webkit-box-shadow: gray 0px 0px 10px;
 	background: #090909;
 	text-align: center;
+}
+body.noAlbumArt #thumbnail {
+    top: 0;
+    right: 0;
+    -webkit-box-shadow: none;
 }
 #thumbnail img#albumart {
 	max-width: 100px;
@@ -121,6 +119,8 @@ body.notification #songDetails {
 }
 body.noAlbumArt #songDetails {
     margin-right: 5px;
+    width: 275px;
+    -webkit-mask-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,1) 8px, rgba(0,0,0,1) 267px, rgba(0,0,0,0));
 }
 #lowerControls {
 	margin-right: 120px;
@@ -153,6 +153,9 @@ body.noAlbumArt #lowerControls {
 	padding: 2px 2px 2px 16px;	
 	-webkit-user-select: text;
     -webkit-appearance: none;
+}
+body.noAlbumArt #searchBox {
+    width: 100%;
 }
 #bufferinglogo {
     position: absolute;
@@ -253,6 +256,10 @@ body.noAlbumArt #lowerControls {
     height: 32px;
     background: url(../img/volume_bg.png) no-repeat;
     display: none;
+}
+body.noAlbumArt #volumeControl {
+    left: initial;
+    right: 4px;
 }
 body.notification #volumeControl {
     top: 90px;

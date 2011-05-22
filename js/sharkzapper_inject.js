@@ -61,10 +61,10 @@ var sharkzapper = new (function SharkZapperPage(debug){
                         }
                     },
                 });
-                if(debug) console.log('creating sharkzappercontroller class');
+                /*if(debug) console.log('creating sharkzappercontroller class');
                 GS.Controllers.PageController.extend("GS.Controllers.Page.SharkzapperController", {}, {
                     index: sharkzapper.listeners.sharkzapperPage
-                });
+                });*/
             },'fetchUserViews');
         },
         undo: function undo_overrides() {

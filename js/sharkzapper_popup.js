@@ -249,7 +249,6 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
                             $('#songName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.SongName));
-                            sharkzapper.ui.popup.updateScrollables();//TODO move
                         } 
                         if (status.playbackStatus.activeSong.hasOwnProperty('AlbumName')) {
     					    $('#albumName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.AlbumName));
@@ -257,6 +256,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    if (status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) {
     					    $('#artistName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.ArtistName));
 					    }
+					    if (status.playbackStatus.activeSong.hasOwnProperty('SongName') || status.playbackStatus.activeSong.hasOwnProperty('AlbumName') || status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) { 
+					        sharkzapper.ui.popup.updateScrollables()
+					    }
+					    
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
                         }
@@ -361,7 +364,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     $(el).clearQueue().stop().css('marginLeft',0).children().not(':first-child').remove();
                     var width = $(el).children().width();
                     var clone = $(el).children().eq(0).clone();
-                    if ($(el).width() >= width) return;
+                    if (($(el).width() + 10) >= width) return; //Ignore text that fits fine (with some leeway) 
                     $(el).append('<span class="sep"> - </span>');
                     $(el).append(clone);
                     width += $(el).children().eq(1).width();

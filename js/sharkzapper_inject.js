@@ -102,21 +102,19 @@ var sharkzapper = new (function SharkZapperPage(debug){
             sharkzapper.listeners.subscriptions["gs.player.queuechange"] = $.subscribe("gs.player.queuechange", sharkzapper.listeners.queuechange);
             
             // Fake the gs.app.ready event (needed when injected after it has already fired)
-            //if (document.readyState == 'complete') {
-                $(document).ready(function() {
-                    setTimeout(function gschecker() {
-                        if (!sharkzapper.gs_ready) {
-                            if (window.GS) {
-                                if (debug) console.log('overriding gs.app.ready');
-                                sharkzapper.listeners.ready();
-                            } else {
-                                if (debug) console.log('no window.GS, will recheck in 200ms');
-                                setTimeout(gschecker, 200);
-                            }
-                        } 
-                    }, 200);
-                });
-            //}
+            $(document).ready(function() {
+                setTimeout(function gschecker() {
+                    if (!sharkzapper.gs_ready) {
+                        if (window.GS) {
+                            if (debug) console.log('overriding gs.app.ready');
+                            sharkzapper.listeners.ready();
+                        } else {
+                            if (debug) console.log('no window.GS, will recheck in 200ms');
+                            setTimeout(gschecker, 200);
+                        }
+                    } 
+                }, 200);
+            });
         },
         unbind: function unbind_listeners() {
             // DOM Events

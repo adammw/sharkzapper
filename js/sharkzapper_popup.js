@@ -89,6 +89,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
 	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
+	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -103,6 +104,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
                 $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
+	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
             },
             addToFavoritesClick: function handle_addToFavoritesClick(e) {
                 if ($('#addToFavoritesBtn').hasClass('selected')) {
@@ -161,6 +163,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             },
             shuffleClick: function handle_shuffleClick(e) {
                 sharkzapper.message.send({"command": "setShuffle", "shuffle": !$('#player_shuffle').hasClass('active')});
+            },
+            songInfoClick: function handle_songInfoClick(e) {
+                sharkzapper.message.send({"command":"openGSTab", "url": $(e.target).attr('href')});
             },
             volumeClick: function handle_volumeClick(e) {
                 sharkzapper.message.send({"command":"toggleMute"});
@@ -226,12 +231,25 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
                         }
+                        
                         //TODO: change link title depending on action
                         if (status.playbackStatus.activeSong.hasOwnProperty('fromLibrary')) {
                             $('#addToLibraryBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.fromLibrary));
                         }
                         if (status.playbackStatus.activeSong.hasOwnProperty('isFavorite')) {
                             $('#addToFavoritesBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.isFavorite));
+                        }
+                        
+                        if (status.playbackStatus.activeSong.hasOwnProperty('urls')) {
+                            if (status.playbackStatus.activeSong.urls.hasOwnProperty('songURL')) {
+                                $('#songName').attr('href',status.playbackStatus.activeSong.urls.songURL);
+                            }
+                            if (status.playbackStatus.activeSong.urls.hasOwnProperty('albumURL')) {
+                                $('#albumName').attr('href',status.playbackStatus.activeSong.urls.albumURL);
+                            }
+                            if (status.playbackStatus.activeSong.urls.hasOwnProperty('artistURL')) {
+                                $('#artistName').attr('href',status.playbackStatus.activeSong.urls.artistURL);
+                            }
                         }
                     }
                     if (status.playbackStatus.hasOwnProperty('duration')) {

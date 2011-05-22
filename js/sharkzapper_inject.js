@@ -194,7 +194,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             sharkzapper.message.recieve(request);           
         }, 
         playstatus: function handle_playstatus(status, noDelta, cached) {
-            // On song change (or noDelta, or no cache)
+            // On song change (or noDelta, or no cache) send urls
             var urls = (noDelta || 
                 (status.activeSong && 
                  status.activeSong.SongID && 
@@ -205,7 +205,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
                          status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
                     )
                 )
-            ) ? sharkzapper.helpers.delta(sharkzapper.helpers.getURLsForSong(status.activeSong), 'playbackUrls') : null;
+            ) ? sharkzapper.helpers.getURLsForSong(status.activeSong) : null;
+            
+            // Delta status by default (e.g. playstats event)
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackStatus');
             if (urls && _.count(urls)) {
                 status.activeSong.urls = urls;
@@ -350,10 +352,18 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 // Command called by popup to get a forced status update, usually cached but may be fresh if cache unavailable
                 case 'updateStatus':
                     if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackProperties) {
-                        sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "playbackProperties": sharkzapper.cache.playbackProperties, "cached":true, "delta":false});
+                        var playbackStatus = $.extend({},sharkzapper.cache.playbackStatus);
+                        if (playbackStatus.activeSong) {
+                            playbackStatus.activeSong.urls = sharkzapper.helpers.getURLsForSong(playbackStatus.activeSong);
+                        }
+                        sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": playbackStatus, "playbackProperties": sharkzapper.cache.playbackProperties, "cached":true, "delta":false});
                     } else {
                         if (sharkzapper.cache.playbackStatus) {
-                            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": sharkzapper.cache.playbackStatus, "cached":true, "delta":false});
+                            var playbackStatus = $.extend({},sharkzapper.cache.playbackStatus);
+                            if (playbackStatus.activeSong) {
+                                playbackStatus.activeSong.urls = sharkzapper.helpers.getURLsForSong(playbackStatus.activeSong);
+                            }
+                            sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": playbackStatus, "cached":true, "delta":false});
                         } else {
                             sharkzapper.helpers.execWhenReady(function updateStatus() {
                                 sharkzapper.listeners.playstatus(GS.player.getPlaybackStatus(), true);

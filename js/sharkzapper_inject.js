@@ -195,14 +195,17 @@ var sharkzapper = new (function SharkZapperPage(debug){
         }, 
         playstatus: function handle_playstatus(status, noDelta, cached) {
             // On song change (or noDelta, or no cache) send urls
-            var urls = (noDelta || 
-                (status.activeSong && 
-                 status.activeSong.SongID && 
-                    (!sharkzapper.cache.playbackStatus || 
-                        (sharkzapper.cache.playbackStatus && 
-                         sharkzapper.cache.playbackStatus.activeSong && 
-                         sharkzapper.cache.playbackStatus.activeSong.SongID && 
-                         status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
+            var urls = (status && 
+                (noDelta || 
+                    (status.activeSong && 
+                     status.activeSong != null &&
+                     status.activeSong.SongID && 
+                        (!sharkzapper.cache.playbackStatus || 
+                            (sharkzapper.cache.playbackStatus && 
+                             sharkzapper.cache.playbackStatus.activeSong && 
+                             sharkzapper.cache.playbackStatus.activeSong.SongID && 
+                             status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
+                        )
                     )
                 )
             ) ? sharkzapper.helpers.getURLsForSong(status.activeSong) : null;
@@ -353,14 +356,14 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 case 'updateStatus':
                     if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackProperties) {
                         var playbackStatus = $.extend({},sharkzapper.cache.playbackStatus);
-                        if (playbackStatus.activeSong) {
+                        if (playbackStatus.activeSong && playbackStatus.activeSong != null) {
                             playbackStatus.activeSong.urls = sharkzapper.helpers.getURLsForSong(playbackStatus.activeSong);
                         }
                         sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": playbackStatus, "playbackProperties": sharkzapper.cache.playbackProperties, "cached":true, "delta":false});
                     } else {
                         if (sharkzapper.cache.playbackStatus) {
                             var playbackStatus = $.extend({},sharkzapper.cache.playbackStatus);
-                            if (playbackStatus.activeSong) {
+                            if (playbackStatus.activeSong && playbackStatus.activeSong != null) {
                                 playbackStatus.activeSong.urls = sharkzapper.helpers.getURLsForSong(playbackStatus.activeSong);
                             }
                             sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": playbackStatus, "cached":true, "delta":false});

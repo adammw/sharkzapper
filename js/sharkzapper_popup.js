@@ -299,7 +299,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 if (status.playbackStatus) {
                     if (status.playbackStatus.activeSong) {
                         $('#player_play_pause, #player_controls_right button').removeAttr('disabled').removeClass('disabled');
-                    
+                        if (debug) console.timeEnd('firstStatus');
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
                             $('#songName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.SongName));
                         } 
@@ -502,12 +502,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             sharkzapper.listeners.error(e);
         }
         sharkzapper.message.send({"command":"popupInit"});
+        if (debug) console.time('firstStatus');
         
         return sharkzapper;
     };
     return this.init();
 })(1); //debug level: 0=none, 1=most, 2=all
- 
 /*
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];

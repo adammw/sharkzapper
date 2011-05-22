@@ -368,11 +368,11 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                             PLAY_STATUS_FAILED: 6,
                             PLAY_STATUS_COMPLETED: 7, */
                     
-                        // Hides thumbnail and most controls when not playing
-                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', status.playbackStatus.status >= 6);
+                        // Hides thumbnail and most controls when PLAY_STATUS_FAILED
+                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', status.playbackStatus.status == 6);
                         
                         // Changes body size when not playing
-                        $('body').toggleClass('notPlaying', status.playbackStatus.status >= 6); //TODO: eliminate "bounce" when using radio (status intermittently goes PLAY_STATUS_COMPLETED)
+                        $('body').toggleClass('notPlaying', status.playbackStatus.status == 6); //PLAY_STATUS_FAILED
                         
                         // Show pause button when playing
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING

@@ -70,6 +70,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
         undo: function undo_overrides() {
             GS.player.player.setPropertyChangeCallback("GS.Controllers.PlayerController.instance().propertyChange");  
             GS.player.player.setQueueChangeCallback("GS.Controllers.PlayerController.instance().queueChange");
+            if (debug) console.log('undid sharkzapper overrides');
         },
         listeners: {
             /*These overrides would not be needed if Grooveshark had a $.publish("gs.player.propchange") etc. on PlayerController.propertyChange etc.*/
@@ -193,7 +194,22 @@ var sharkzapper = new (function SharkZapperPage(debug){
             sharkzapper.message.recieve(request);           
         }, 
         playstatus: function handle_playstatus(status, noDelta, cached) {
+            // On song change (or noDelta, or no cache)
+            var urls = (noDelta || 
+                (status.activeSong && 
+                 status.activeSong.SongID && 
+                    (!sharkzapper.cache.playbackStatus || 
+                        (sharkzapper.cache.playbackStatus && 
+                         sharkzapper.cache.playbackStatus.activeSong && 
+                         sharkzapper.cache.playbackStatus.activeSong.SongID && 
+                         status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
+                    )
+                )
+            ) ? sharkzapper.helpers.delta(sharkzapper.helpers.getURLsForSong(status.activeSong), 'playbackUrls') : null;
             status = (noDelta) ? status : sharkzapper.helpers.delta(status, 'playbackStatus');
+            if (urls && _.count(urls)) {
+                status.activeSong.urls = urls;
+            }
             sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": status, "cached": Boolean(cached), "delta": !Boolean(noDelta)});
         },
         propchange: function handle_propchange(status, noDelta, cached) {
@@ -520,6 +536,17 @@ var sharkzapper = new (function SharkZapperPage(debug){
             } else {
                 return false;
             }
+        },
+        getURLsForSong: function getURLsForSong(song) {
+            if (!(song instanceof GS.Models.Song)) {
+                song = new GS.Models.Song(song);
+            }
+            // URLs are relative to grooveshark.com
+            return {
+                songURL: song.toUrl(), //requires GS.Models.Song
+                albumURL: _.cleanUrl(song.AlbumName, song.AlbumID, "album"),
+                artistURL: _.cleanUrl(song.ArtistName, song.ArtistID, "artist")
+            };
         }
     };
     sharkzapper.destroy = function destroy() {

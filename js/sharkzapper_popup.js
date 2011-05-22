@@ -75,6 +75,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         }
     };
     sharkzapper.ui = {
+        timeouts: {
+            scrollables: []
+        },
         listeners: { 
             bind: function bind_ui_listeners() {
                 $("#volumeSlider").bind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -246,6 +249,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
                             $('#songName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.SongName));
+                            sharkzapper.ui.popup.updateScrollables();//TODO move
                         } 
                         if (status.playbackStatus.activeSong.hasOwnProperty('AlbumName')) {
     					    $('#albumName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.AlbumName));
@@ -345,7 +349,31 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     }
                 }
             },
-            updateQueue: []
+            updateQueue: [],
+            updateScrollables: function() {
+                var scrollRate = 50;
+                var scrollDelay = 3000;
+                $(sharkzapper.ui.timeouts.scrollables).each(function(i,t) {
+                    clearTimeout(t);
+                });
+                //TODO: Delay start of next scroll until all three have finished scrolling
+                $('.scrollable').each(function(i, el) {
+                    $(el).clearQueue().stop().css('marginLeft',0).children().not(':first-child').remove();
+                    var width = $(el).children().width();
+                    var clone = $(el).children().eq(0).clone();
+                    if ($(el).width() >= width) return;
+                    $(el).append('<span class="sep"> - </span>');
+                    $(el).append(clone);
+                    width += $(el).children().eq(1).width();
+                    console.log('elwidth',$(el).width(),'width',width);
+                    (function animate() {
+                        $(el).animate({marginLeft: -width}, width*scrollRate, 'linear', function() {
+                            $(this).delay(1).css('marginLeft', 0);
+                            sharkzapper.ui.timeouts.scrollables.push(setTimeout(animate, scrollDelay));
+                        });
+                    })();
+                });
+            }
         }
     };
     sharkzapper.helpers = {

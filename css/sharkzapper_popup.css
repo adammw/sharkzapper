@@ -105,6 +105,8 @@ body.noAlbumArt.notification #settingsBtn, body.noAlbumArt #settingsBtn.noPin {
 	top: 8px;
 	z-index: 6000;
 	-webkit-box-shadow: gray 0px 0px 10px;
+	background: #090909;
+	text-align: center;
 }
 #thumbnail img#albumart {
 	max-width: 100px;

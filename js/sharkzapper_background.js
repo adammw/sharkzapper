@@ -90,7 +90,7 @@ function get_gs_tab(success_callback, fail_callback, arg) {
 // Inject our content scripts into the first grooveshark tab (should not be required after plugin is loaded due to manifest)
 function inject_scripts() {
 	if (gsTabs.length > 0) {
-		chrome.tabs.executeScript(gsTabs[0], {'file':'js/jquery-1.4.4.min.js'});		
+		chrome.tabs.executeScript(gsTabs[0], {'file':'js/jquery.min.js'});		
 		chrome.tabs.executeScript(gsTabs[0], {'file':'js/sharkzapper_contentscript.js'});
 		if (debug) console.log('Injected scripts into existing tab #' + gsTabs[0]);
 		
@@ -100,7 +100,7 @@ function inject_scripts() {
 }
 
 // Open a new grooveshark tab or show the currently open one if there is one
-function open_gs_tab(url) {
+function open_gs_tab(url) { //TODO: fix so preview.grooveshark.com tabs work
 	if (gsTabs.length == 0) {
 		if (url) {
 			chrome.tabs.create({url:'http://grooveshark.com/' + url});
@@ -145,6 +145,7 @@ chrome.extension.onRequest.addListener(
 		switch (request.command) {
 	        // This is sent each time a popup is open, we give some initialisation settings such as enabled, tabId, etc.
 			case 'popupInit':
+			    //TODO: Use chrome.browserAction.onClicked.addListener and chrome.browserAction.setPopup to open new tab instead, requires tracking open tabs
 				if (debug) console.log('Got popup init, re-checking tabs');
 				get_gs_tab(function(notification){return function(){ //success (at least one open tab)
 					sendRequest({"command":"popupUpdate","enabled":gsTabContentScriptLoaded,"tabId":gsTabs[0],"pinnedPopupOpen":pinnedPopupOpen,"includeNotification":notification},'extension');

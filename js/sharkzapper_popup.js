@@ -214,6 +214,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_play_pause').addClass('disabled').removeClass('pause');
                         $('#player_play_pause, #player_controls_right button').attr('disabled','disabled');
                         $('#player_duration, #player_elapsed').text('');
+                        $('body').addClass('notPlaying');
                         //TODO
                     }
                 }
@@ -261,6 +262,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     if (status.playbackStatus.hasOwnProperty('status')) {
                         // Hides thumbnail and most controls when not playing
                         $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        
+                        // Changes body size when not playing
+                        $('body').toggleClass('notPlaying', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
                         
                         // Show pause button when playing
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING

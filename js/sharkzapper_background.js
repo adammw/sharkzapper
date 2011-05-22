@@ -319,6 +319,12 @@ chrome.extension.onRequest.addListener(
             case 'getSetting':
                 if (!request.settingName) return;
                 sendResponse(getSetting(request.settingName));
+                break;
+                
+            // Note that this does not open THE popup, it opens a popup window...
+            case 'openPopup':
+                window.open(request.url, '', request.features);
+                break
 		}
 	}
 );

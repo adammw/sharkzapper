@@ -36,6 +36,7 @@ function inject_sharkzapper() {
             case 'interactionTimePrompt':
             case 'fetchView':
             case 'fetchSettings':
+            case 'openPopup':
 			    sendRequest(request);
                 break;
             case 'removeListener':

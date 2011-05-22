@@ -50,7 +50,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                             _.forEach(views, function (view, key) {
                                 if (key == "gs_views_settings_index_ejs") {
                                     // Inject our link
-                                    view = view.replace(/(<ul id="settings_sections"[\s\S]+?)<\/ul>/,'$1\n<li class="pane pane_sharkzapper">\n<a href="#/sharkzapper/settings" class="<% if (this.pageType == "settings" ) { %>active<% } %>">\n<span class="icon" style="background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oMFwQbH1R4eX0AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD0klEQVQ4y12Ma0xbZRiA3+/raSstlN7g2CMUjkw3wyUkmzNGUG6Zi4kLUVzikvnHaNwPxJgxw7YfExRMiEYzjcmSZUFINLqAYzNmXEK7hEi5lQK6gfQCraO0PaelLaftTr/z+WuJ8fn9PA+ilML/UC/Ozx+z2WxX8vl8myzLkM1kprx+f+/LjY1LxSZTHmP82EXoPwPk83rrY7FYTyAQeN0fCEQT8biAEAKDwWBhWdZmNBjGKFUG33jrtPtkW/WR7k8GvMzj+u+NjfZlt/vH5eXlv9xud9fU9PTd6tpa4ZmqKiaeSNitZnNLJc+/V2otcXz+WXdPal8s8Xk3v0SUUlhbXa1dWFhwORyOW8MjIx85Z2a+D4VCCzaOu9Hc0hIGAC0AkM7OztqDtDT4dOlua1UZfvXtzjuzeDsQ0KytrV1aXFxc83g8Fyiley6X65XAzk7fPadz8vq1ay8BAKaUFn519arvqGnuZyUpwoSbPbu+vv4E/nV09LB3a6tjZWXlhmd1NQgAkE6n8zzPq8wWS83c/Pyty5cuPo8QUt/84p3ntKL/ikTtc3lZPnN7fPwQlvP5T7e83pB/e3saAGB8bMxCAayiKIK19ElaZ0MWYXPGefliDx+V/hgqrWFnsa3tW7WayblcrvP44e7uqb29PUEBCAIAxATh7IEkYUmSqH/rPmo4rqa9fdVgZqfGT5+zW35Z6ek7XlcS0mo00VQq9Rr+JxTCuVyuoLWpqczjdp/YCQbPp5JJEMUEwvkQVNUzqISX6MddRravl0SHR973FxcXazVarSqbzWKV0Wh8IZvLvchxXPvG5uYZr8/H6vWFFIOETjYQcDgfQpU+jabvIph2mYoWXLMNusLC5o0HD2oi0eiEymKx3Jdl+V1FUUyiKBYwDAOZTAaZtTE4ZH0EP/yuhfpjMbh+00qLjEZGEMXKcDhcEY/HSXl5+Qe4sqLiz/1EYkwUBMhkMlQQBJCScWh/9gC+/kkCxBA4140hJSkoLopACAGMMUiSdKerq2sDUUqx3W4/SgiZsFqtRlnG9MMOM9rZxTC1ngWdVgUMw4Asy4AQok9xHMpks/tFRUVvDg0NuTEAwOjo6AohpDMcjiaO8DkUjKdheDIIqUSURiIRGolEACEELMsiKZNJJpPJC/39/R4AIIgQgjHGyOvbYVqamxoP2+XvgjE9r9Pp1QzDgEajAZ1OBwzDkFQqNclx3DcDAwOLPM8/opQqQCnFiqKoKKXMvd9uGwb7+6x1dXWnWJZ1chwnl5WVyXa73dHa2tqxtLTEEkJMlFKDoih6SmnBv/eM+oTo5p/0AAAAAElFTkSuQmCC) no-repeat;"></span>\n<span class="text">sharkZapper</span>\n<span class="arrow"></span>\n</a>\n</li>\n</ul>');
+                                    view = view.replace(/(<ul id="settings_sections"[\s\S]+?)<\/ul>/,'$1\n<li class="pane pane_sharkzapper">\n<a onclick="sharkzapper.openSettings()">\n<span class="icon" style="background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oMFwQbH1R4eX0AAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAD0klEQVQ4y12Ma0xbZRiA3+/raSstlN7g2CMUjkw3wyUkmzNGUG6Zi4kLUVzikvnHaNwPxJgxw7YfExRMiEYzjcmSZUFINLqAYzNmXEK7hEi5lQK6gfQCraO0PaelLaftTr/z+WuJ8fn9PA+ilML/UC/Ozx+z2WxX8vl8myzLkM1kprx+f+/LjY1LxSZTHmP82EXoPwPk83rrY7FYTyAQeN0fCEQT8biAEAKDwWBhWdZmNBjGKFUG33jrtPtkW/WR7k8GvMzj+u+NjfZlt/vH5eXlv9xud9fU9PTd6tpa4ZmqKiaeSNitZnNLJc+/V2otcXz+WXdPal8s8Xk3v0SUUlhbXa1dWFhwORyOW8MjIx85Z2a+D4VCCzaOu9Hc0hIGAC0AkM7OztqDtDT4dOlua1UZfvXtzjuzeDsQ0KytrV1aXFxc83g8Fyiley6X65XAzk7fPadz8vq1ay8BAKaUFn519arvqGnuZyUpwoSbPbu+vv4E/nV09LB3a6tjZWXlhmd1NQgAkE6n8zzPq8wWS83c/Pyty5cuPo8QUt/84p3ntKL/ikTtc3lZPnN7fPwQlvP5T7e83pB/e3saAGB8bMxCAayiKIK19ElaZ0MWYXPGefliDx+V/hgqrWFnsa3tW7WayblcrvP44e7uqb29PUEBCAIAxATh7IEkYUmSqH/rPmo4rqa9fdVgZqfGT5+zW35Z6ek7XlcS0mo00VQq9Rr+JxTCuVyuoLWpqczjdp/YCQbPp5JJEMUEwvkQVNUzqISX6MddRravl0SHR973FxcXazVarSqbzWKV0Wh8IZvLvchxXPvG5uYZr8/H6vWFFIOETjYQcDgfQpU+jabvIph2mYoWXLMNusLC5o0HD2oi0eiEymKx3Jdl+V1FUUyiKBYwDAOZTAaZtTE4ZH0EP/yuhfpjMbh+00qLjEZGEMXKcDhcEY/HSXl5+Qe4sqLiz/1EYkwUBMhkMlQQBJCScWh/9gC+/kkCxBA4140hJSkoLopACAGMMUiSdKerq2sDUUqx3W4/SgiZsFqtRlnG9MMOM9rZxTC1ngWdVgUMw4Asy4AQok9xHMpks/tFRUVvDg0NuTEAwOjo6AohpDMcjiaO8DkUjKdheDIIqUSURiIRGolEACEELMsiKZNJJpPJC/39/R4AIIgQgjHGyOvbYVqamxoP2+XvgjE9r9Pp1QzDgEajAZ1OBwzDkFQqNclx3DcDAwOLPM8/opQqQCnFiqKoKKXMvd9uGwb7+6x1dXWnWJZ1chwnl5WVyXa73dHa2tqxtLTEEkJMlFKDoih6SmnBv/eM+oTo5p/0AAAAAElFTkSuQmCC) no-repeat;"></span>\n<span class="text">sharkZapper</span>\n<span class="arrow"></span>\n</a>\n</li>\n</ul>');
                                     
                                     // Insert our index
                                     $.View.preCached["gs_views_sharkzapper_settingsindex_ejs"] = view;
@@ -603,6 +603,24 @@ var sharkzapper = new (function SharkZapperPage(debug){
     var sharkzapper_external = new (function SharkZapper_ExternalInterface() {
         if (debug) this.internal = sharkzapper;
         this.overrides = sharkzapper.overrides.listeners;
+        this.openSettings = function openSettings() {
+            var pane = document.querySelector('#page_pane');
+            var offset = (pane) ? (function getOffset( el ) {
+                var _x = 0;
+                var _y = 0;
+                while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
+                    _x += el.offsetLeft - el.scrollLeft;
+                    _y += el.offsetTop - el.scrollTop;
+                    el = el.offsetParent;
+                }
+                return { top: _y, left: _x };
+            })(pane) : {top: 400, left: 80};
+            var width = (pane) ? pane.offsetWidth : 600;
+            var height = (pane) ? (pane.offsetHeight - 40) : 400;
+            var left = window.screenLeft + offset.left;
+            var top = window.screenTop + offset.top + 40;
+            sharkzapper.message.send({command:"openPopup", url: "sharkzapper_options.html", features: "width="+width+",height="+height+",left="+left+",top="+top});
+        };
     })();
     return this.init();
 })(true);

@@ -238,13 +238,13 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_play_pause, #player_controls_right button').removeAttr('disabled').removeClass('disabled');
                     
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
-                            $('#songName').text(status.playbackStatus.activeSong.SongName);
+                            $('#songName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.SongName));
                         } 
                         if (status.playbackStatus.activeSong.hasOwnProperty('AlbumName')) {
-    					    $('#albumName').text(status.playbackStatus.activeSong.AlbumName);
+    					    $('#albumName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.AlbumName));
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) {
-    					    $('#artistName').text(status.playbackStatus.activeSong.ArtistName);
+    					    $('#artistName').text(Encoder.htmlDecode(status.playbackStatus.activeSong.ArtistName));
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);

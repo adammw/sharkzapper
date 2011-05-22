@@ -301,7 +301,7 @@ chrome.extension.onRequest.addListener(
                 if (!localStorage.settings) return;
                 request.command = "settingsUpdate";
                 request.settings = JSON.parse(localStorage.settings);
-                sendRequest(request,'tab');
+                sendRequest(request,'extension');
                 break;
             
             // This is sent from a content script when it updates settings and we save the settings to localStorage

@@ -18,24 +18,9 @@
 <head>
 	<title>SharkZapper Settings</title>
 	<link rel="stylesheet" href="http://static.a.gs-cdn.net/webincludes/css/production.css?20101203.13" type="text/css" />
-	<style type="text/css">
-	    html, body, #content {
-	        height: 100%;
-        }
-        #main {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-        }
-        #page_wrapper {
-            width: 100%;
-        }
-        #page_content #page_pane {
-            width: 100%;
-            height: 100%;
-            float: none;
-            position: static;
-        }
-	</style>
+	<!-- TODO: Fix styling (it's not actually visible in the popup!) -->
+	<link rel="stylesheet" href="../css/sharkzapper_options.css" type="text/css" />
+	<script type="text/javascript" src="../js/sharkzapper_options.js"></script>
 </head>
 <body>
     <div id="mainContainer">
@@ -49,13 +34,83 @@
                         <div id="page" class="gs_page_settings"> 
                             <div id="page_content">
                                 <div id="page_pane" class="page_column page_column_fluid last scrollable">
-                                    <form class="settings">
+                                    <form id="settings_sharkzapper" class="settings" method="post" action="">
+                                        <h4>sharkZapper Settings</h4>
                                         <fieldset>
-                                            <legend>SharkZapper Settings</legend>
-                                            <p>Settings go here</p>
-                                            <p>1</p>
-                                                                                        <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>                                            <p>1</p>
+                                            <legend>Appearance</legend>
+                                            <ul class="checkbox_list">
+                                                <li>
+                                                    <input id="settings_sharkzapper_showAlbumArt" type="checkbox" tabindex="" name="settings_sharkzapper_showAlbumArt">
+                                                    <label class="value label" for="settings_sharkzapper_showAlbumArt">Show Album Art</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showPlaybackButtons" type="checkbox" tabindex="" name="settings_sharkzapper_showPlaybackButtons">
+                                                    <label class="value label" for="settings_sharkzapper_showPlaybackButtons">Show Playback Buttons (Previous/Play/Next)</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showQueueButtons" type="checkbox" tabindex="" name="settings_sharkzapper_showQueueButtons">
+                                                    <label class="value label" for="settings_sharkzapper_showQueueButtons">Show Queue Buttons (Shuffle/Repeat/Crossfade) on top of Album Art</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showQueuePosition" type="checkbox" tabindex="" name="settings_sharkzapper_showQueuePosition">
+                                                    <label class="value label" for="settings_sharkzapper_showQueuePosition">Show Queue Position on top of Album Art</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showMuteButton" type="checkbox" tabindex="" name="settings_sharkzapper_showMuteButton">
+                                                    <label class="value label" for="settings_sharkzapper_showMuteButton">Show Volume Mute button</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showVolumeControlOnHover" type="checkbox" tabindex="" name="settings_sharkzapper_showVolumeControlOnHover">
+                                                    <label class="value label" for="settings_sharkzapper_showVolumeControlOnHover">Show Volume Control on mute button hover</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showSearchBox" type="checkbox" tabindex="" name="settings_sharkzapper_showSearchBox">
+                                                    <label class="value label" for="settings_sharkzapper_showSearchBox">Show Search Box (not available in pinned version)</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <p>To Hide sharkZapper button when Grooveshark is closed, 
+                                                    <a href="https://chrome.google.com/webstore/detail/nbpioalcbaajlbpmcgajmlnhggoojbll" target="_blank">Install this extension</a></p>
+                                                    <div class="clear"></div>
+                                                </li>
+                                            </ul>
                                         </fieldset>
+                                        <br />
+                                        <fieldset>
+                                            <legend>Behaviour</legend>
+                                            <ul class="checkbox_list">
+                                                <li>
+                                                    <input id="settings_sharkzapper_newTabOnPopupClick" type="checkbox" tabindex="" name="settings_sharkzapper_newTabOnPopupClick">
+                                                    <label class="value label" for="settings_sharkzapper_newTabOnPopupClick">Automatically open Grooveshark when clicking SharkZapper button</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_showNotificationOnSongChange" type="checkbox" tabindex="" name="settings_sharkzapper_showNotificationOnSongChange">
+                                                    <label class="value label" for="settings_sharkzapper_showNotificationOnSongChange">Show notification on Song Change</label>
+                                                    <div class="clear"></div>
+                                                </li>
+                                                <li>
+                                                    <input id="settings_sharkzapper_enableSharkzapperMobile" type="checkbox" tabindex="" name="settings_sharkzapper_enableSharkzapperMobile">
+                                                    <label class="value label" for="settings_sharkzapper_enableSharkzapperMobile">Enable sharkZapper Mobile (BETA)</label>
+                                                    <p id="settings_sharkzapper_mobileStatus">Not Connected</p>
+                                                    <div class="clear"></div>
+                                                </li>
+                                            </ul>
+                                        </fieldset>
+                                        <div class="buttons left">
+                                            <button class="btn_style4 saveChanges" type="submit" style="float:left">
+                                                <div>
+                                                    <span>Save Changes</span>
+                                                </div>
+                                            </button>
+                                            <div class="status"></div>
+                                        </div>
                                     </form>
                                 </div>
                             </div>

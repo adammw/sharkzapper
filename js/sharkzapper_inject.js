@@ -424,6 +424,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 case 'settingsUpdate':
                     sharkzapper.settings = data.settings;
                     $.publish("sharkzapper.settingsupdate");
+                    break;
                     
                 /* Commands */
                 case 'toggleMute':

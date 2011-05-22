@@ -94,6 +94,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
 	            $('#radioSmileBtn').bind('click', sharkzapper.ui.listeners.radioSmileClick);
 	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
+	            $('#settingsBtn').bind('click',sharkzapper.ui.listeners.settingsClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
@@ -118,6 +119,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
 	            $('#radioSmileBtn').unbind('click', sharkzapper.ui.listeners.radioSmileClick);
                 $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
+	            $('#settingsBtn').unbind('click',sharkzapper.ui.listeners.settingsClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
@@ -171,6 +173,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             },
             groovesharkLogoClick: function handle_groovesharkLogoClick(e) {
                 sharkzapper.message.send({"command":"openGSTab"});
+            },
+            settingsClick: function handle_settingsClick(e) {
+                sharkzapper.message.send({"command":"openPopup", "url":"sharkzapper_options.html"});
             },
             pinClick: function handle_pinClick(e) {
                 /* TODO: allow for unpinning */

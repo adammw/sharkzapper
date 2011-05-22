@@ -28,7 +28,7 @@
 	"content_scripts": [
 		{
 			"matches": ["*://preview.grooveshark.com/*", "*://grooveshark.com/*"],
-			"js": ["js/jquery.js", "js/sharkzapper_contentscript.js"]
+			"js": ["js/jquery.min.js", "js/sharkzapper_contentscript.js"]
 		}
 	]
 }

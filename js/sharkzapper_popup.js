@@ -87,6 +87,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_loop').bind('click', sharkzapper.ui.listeners.loopClick);
 	            $('#player_crossfade').bind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
+	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -99,6 +100,14 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_loop').unbind('click', sharkzapper.ui.listeners.loopClick);
 	            $('#player_crossfade').unbind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
+                $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+            },
+            addToFavoritesClick: function handle_addToFavoritesClick(e) {
+                if ($('#addToFavoritesBtn').hasClass('selected')) {
+			        sharkzapper.message.send({"command": "removeFromSongFavorites"});
+		        } else {
+			        sharkzapper.message.send({"command": "addToSongFavorites"});
+		        }
             },
             addToLibraryClick: function handle_addToLibraryClick(e) {
                 if ($('#addToLibraryBtn').hasClass('selected')) {
@@ -155,7 +164,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 if (!e.originalEvent) return;
                 
                 //sendMessage({"command":"volumeUpdate","volume":$('#volumeSlider').slider("option", "value")});
-                console.log('vol:',e,b);
+                if (debug) console.log('vol:',e,b);
             }
         },
         popup: {
@@ -176,14 +185,14 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     return;
                 }
                 
-                console.log('ui ready, performing',sharkzapper.ui.popup.updateQueue.length,'queued status updates');
+                if (debug) console.log('ui ready, performing',sharkzapper.ui.popup.updateQueue.length,'queued status updates');
                 while (sharkzapper.ui.popup.updateQueue.length) {
                     sharkzapper.ui.popup.update(sharkzapper.ui.popup.updateQueue.shift());
                 }
             },
             update: function update(status) {
                 if (!sharkzapper.ui.popup.ready) {
-                    console.log('got update but not ready, adding to queue', status, sharkzapper.ui.popup.updateQueue.length);
+                    if (debug) console.log('got update but not ready, adding to queue', status, sharkzapper.ui.popup.updateQueue.length);
                     sharkzapper.ui.popup.updateQueue.push(status);
                     return;
                 }
@@ -266,12 +275,15 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_loop').toggleClass('active', Boolean(status.queue.repeatMode));
 					    $('#player_loop').toggleClass('one', status.queue.repeatMode == 2); //REPEAT_ONE
                     }
+                    if (status.queue.hasOwnProperty('autoplayEnabled')) {
+                        $('#playerDetails_nowPlaying').toggleClass('radioOn', status.queue.autoplayEnabled);
+                    }
                     if (status.queue.hasOwnProperty('previousSong')) {
                         if (status.queue.previousSong) {
-                            console.log('has prev song');
+                            if (debug) console.log('has prev song');
                             $('#player_previous').removeAttr('disabled');
                         } else {
-                        console.log('has no prev song');
+                            if (debug) console.log('has no prev song');
                             $('#player_previous').attr('disabled','disabled');
                         }
                     }

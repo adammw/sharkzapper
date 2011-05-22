@@ -287,7 +287,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 // Check for null playbackStatus - indicates nothing to play / nothing playing
                 if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
                     if (debug) console.log('got null playbackStatus, hiding detail');
-                    $('#songDetails, #albumart, #lowerControls, #player_controls_right').addClass('hidden');
+                    $('#songDetails, #albumart, #lowerControls, #player_controls_right, #queue_position').addClass('hidden');
                     $('#player_play_pause').addClass('disabled').removeClass('pause');
                     $('#player_play_pause, #player_controls_right button').attr('disabled','disabled').addClass('disabled');
                     $('#player_duration, #player_elapsed').text('');
@@ -315,6 +315,11 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
                             $('#albumart').attr('src', (status.playbackStatus.activeSong.CoverArtFilename) ? sharkzapper.urls.albumartroot + 's' + status.playbackStatus.activeSong.CoverArtFilename : sharkzapper.urls.albumartdefault);
+                        }
+                        
+                        if (status.playbackStatus.activeSong.hasOwnProperty('index')) {
+                            $('#queue_current_position').text(status.playbackStatus.activeSong.index+1);
+                            $('#queue_position').removeClass('hidden');
                         }
                         
                         //TODO: change link title depending on action
@@ -409,6 +414,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         } else {
                             $('#player_next').attr('disabled','disabled');
                         }
+                    }
+                    if (status.queue.hasOwnProperty('songs') && typeof status.queue.songs == 'number') {
+                        $('#queue_total').text(status.queue.songs);
+                        $('#queue_position_separator, #queue_total').toggleClass('hidden',!status.queue.songs);
                     }
                 }
             },

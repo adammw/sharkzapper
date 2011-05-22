@@ -199,7 +199,7 @@ function cleanupDoneListener(e){
 }
 
 /* Main content script */
-if (window.location.pathname != "/sidebar.php" && window.location.pathname != "/pixels.php" && window.location.pathname != "/upload/") {
+if (window.location.pathname.substring(1).indexOf('/') === -1 & window.location.pathname.indexOf('.') === -1) {
     var inject = document.getElementById('sharkzapperInject');
     // Inject script if newer or in debug mode
     if (inject && (debug || inject.className != 'version_'+thisVersion)) {

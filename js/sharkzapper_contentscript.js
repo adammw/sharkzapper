@@ -69,6 +69,7 @@ function inject_sharkzapper() {
 		    case 'playSong':
 		    case 'resumeSong':
 		    case 'nextSong':
+		    case 'voteSong':
 		    case 'updateStatus':
 		    case 'toggleMute':
             case 'togglePlayPause':

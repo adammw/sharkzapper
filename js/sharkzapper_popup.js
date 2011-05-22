@@ -322,12 +322,21 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                             $('#queue_position').removeClass('hidden');
                         }
                         
-                        //TODO: change link title depending on action
                         if (status.playbackStatus.activeSong.hasOwnProperty('fromLibrary')) {
                             $('#addToLibraryBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.fromLibrary));
+                            if ($('#addToLibraryBtn').hasClass('selected')) {
+                                $('#addToLibraryBtn').attr('title', 'Remove from My Music');
+                            } else {
+                                $('#addToLibraryBtn').attr('title', 'Add to My Music');
+                            }
                         }
                         if (status.playbackStatus.activeSong.hasOwnProperty('isFavorite')) {
                             $('#addToFavoritesBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.isFavorite));
+                            if ($('#addToFavoritesBtn').hasClass('selected')) {
+                                $('#addToFavoritesBtn').attr('title', 'Remove from Favorites');
+                            } else {
+                                $('#addToFavoritesBtn').attr('title', 'Add to Favorites');
+                            }
                         }
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('urls')) {

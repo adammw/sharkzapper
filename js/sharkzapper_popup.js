@@ -88,6 +88,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_crossfade').bind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
 	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+	            $('#radioSmileBtn').bind('click', sharkzapper.ui.listeners.radioSmileClick);
+	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
             },
@@ -103,6 +105,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_crossfade').unbind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
                 $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+	            $('#radioSmileBtn').unbind('click', sharkzapper.ui.listeners.radioSmileClick);
+                $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
             },
@@ -119,6 +123,16 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 		        } else {
 			        sharkzapper.message.send({"command": "addToLibrary"});
 		        }
+            },
+            radioSmileClick: function handle_radioSmileClick(e) {
+                sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioSmileBtn').hasClass('selected')) ? 0 : 1});
+                // assume it worked TODO: fix this and use actual status updates
+                $('#radioSmileBtn').toggleClass('selected');
+            },
+            radioFrownClick: function handle_radioFrownClick(e) {
+                sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioFrownBtn').hasClass('selected')) ? 0 : -1});
+                // assume it worked TODO: fix this and use actual status updates
+                $('#radioFrownBtn').toggleClass('selected');
             },
             loopClick: function handle_loopClick(e) {
                 if ($('#player_loop').hasClass("active") && $('#player_loop').hasClass("one")) {
@@ -207,19 +221,22 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     sharkzapper.ui.popup.updateQueue.push(status);
                     return;
                 }
-                if (!status.delta) { 
-                    // Check for null playbackStatus - indicates nothing to play / nothing playing
-                    if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
-                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').addClass('hidden');
-                        $('#player_play_pause').addClass('disabled').removeClass('pause');
-                        $('#player_play_pause, #player_controls_right button').attr('disabled','disabled');
-                        $('#player_duration, #player_elapsed').text('');
-                        $('body').addClass('notPlaying');
-                        //TODO
-                    }
+                // Check for null playbackStatus - indicates nothing to play / nothing playing
+                if (status.hasOwnProperty('playbackStatus') && !status.playbackStatus) {
+                    if (debug) console.log('got null playbackStatus, hiding detail');
+                    $('#songDetails, #albumart, #lowerControls, #player_controls_right').addClass('hidden');
+                    $('#player_play_pause').addClass('disabled').removeClass('pause');
+                    $('#player_play_pause, #player_controls_right button').attr('disabled','disabled').addClass('disabled');
+                    $('#player_duration, #player_elapsed').text('');
+                    $('body').addClass('notPlaying');
+                    //TODO
                 }
+                
+                // Update if playing
                 if (status.playbackStatus) {
                     if (status.playbackStatus.activeSong) {
+                        $('#player_play_pause, #player_controls_right button').removeAttr('disabled').removeClass('disabled');
+                    
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
                             $('#songName').text(status.playbackStatus.activeSong.SongName);
                         } 
@@ -260,11 +277,21 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_elapsed').text(sharkzapper.helpers.msec2time(status.playbackStatus.position));
                     }
                     if (status.playbackStatus.hasOwnProperty('status')) {
+                        /* Valid statuses are:
+                            PLAY_STATUS_NONE: 0,
+                            PLAY_STATUS_INITIALIZING: 1,
+                            PLAY_STATUS_LOADING: 2,
+                            PLAY_STATUS_PLAYING: 3,
+                            PLAY_STATUS_PAUSED: 4,
+                            PLAY_STATUS_BUFFERING: 5,
+                            PLAY_STATUS_FAILED: 6,
+                            PLAY_STATUS_COMPLETED: 7, */
+                    
                         // Hides thumbnail and most controls when not playing
-                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        $('#songDetails, #albumart, #lowerControls, #player_controls_right').toggleClass('hidden', status.playbackStatus.status >= 6);
                         
                         // Changes body size when not playing
-                        $('body').toggleClass('notPlaying', !(status.playbackStatus.status > 0 && status.playbackStatus.status < 6));
+                        $('body').toggleClass('notPlaying', status.playbackStatus.status >= 6);
                         
                         // Show pause button when playing
                         $('#player_play_pause').toggleClass('pause', status.playbackStatus.status == 3); //PLAY_STATUS_PLAYING
@@ -272,19 +299,6 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         // Show buffering logo when PLAY_STATUS_INITIALIZING, PLAY_STATUS_LOADING or PLAY_STATUS_BUFFERING
                         $('#player_play_pause').toggleClass('buffering', (status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5));
                         $('#bufferinglogo').toggleClass('hidden', !(status.playbackStatus.status == 1 || status.playbackStatus.status == 2 || status.playbackStatus.status == 5)); 
-
-                        // Disable play/pause, shuffle, repeat and xfade buttons
-                        $('#player_play_pause, #player_controls_right button').toggleClass('disabled', status.playbackStatus.status == 0); //PLAY_STATUS_NONE
-                        if (status.playbackStatus.status == 0) { //TODO: fix needed for when queue has songs but is still PLAY_STATUS_NONE
-                            $('#player_play_pause, #player_controls_right button').attr('disabled','disabled');
-                        } else {
-                            $('#player_play_pause, #player_controls_right button').removeAttr('disabled');
-                        }
-                        
-                        // PLAY_STATUS_NONE, PLAY_STATUS_INITIALIZING, PLAY_STATUS_FAILED or PLAY_STATUS_COMPLETED:
-                        if (status.playbackStatus.status < 2 || status.playbackStatus.status > 5) {
-                            //TODO
-                        }
                     }
                 }
                 if (status.playbackProperties) {

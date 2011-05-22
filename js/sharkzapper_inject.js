@@ -194,6 +194,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
             sharkzapper.message.recieve(request);           
         }, 
         playstatus: function handle_playstatus(status, noDelta, cached) {
+            // Fix for odd queueReset behaviour
+            if (status && status.activeSong && status.activeSong.SongID == null) {
+                status = null;
+            }
+        
             // On song change (or noDelta, or no cache) send urls
             var urls = (status && 
                 (noDelta || 
@@ -437,6 +442,12 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (!sharkzapper.gs_ready) return;
                     
                     Grooveshark.next()
+                    break;
+                        
+                case "voteSong":    
+                    if (!sharkzapper.gs_ready) return;
+                    
+                    Grooveshark.voteCurrentSong(data.vote);
                     break;
                 case "setShuffle": 
                     if (!sharkzapper.gs_ready) return;

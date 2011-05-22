@@ -88,6 +88,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_crossfade').bind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
 	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -101,6 +102,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_crossfade').unbind('click', sharkzapper.ui.listeners.crossfadeClick);
 	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
                 $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+                $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
             },
             addToFavoritesClick: function handle_addToFavoritesClick(e) {
                 if ($('#addToFavoritesBtn').hasClass('selected')) {
@@ -130,6 +132,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             },
             groovesharkLogoClick: function handle_groovesharkLogoClick(e) {
                 sharkzapper.message.send({"command":"openGSTab"});
+            },
+            pinClick: function handle_pinClick(e) {
+                /* TODO: allow for unpinning */
+                sharkzapper.message.send({"command": "pinPopup"});
             },
             playPauseClick: function handle_playPauseClick(e) {
                 if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.status == 7) { //PLAY_STATUS_COMPLETED

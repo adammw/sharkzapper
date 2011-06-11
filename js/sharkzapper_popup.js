@@ -161,13 +161,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             },
             radioSmileClick: function handle_radioSmileClick(e) {
                 sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioSmileBtn').hasClass('selected')) ? 0 : 1});
-                // assume it worked TODO: fix this and use actual status updates
-                $('#radioSmileBtn').toggleClass('selected');
             },
             radioFrownClick: function handle_radioFrownClick(e) {
                 sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioFrownBtn').hasClass('selected')) ? 0 : -1});
-                // assume it worked TODO: fix this and use actual status updates
-                $('#radioFrownBtn').toggleClass('selected');
             },
             loopClick: function handle_loopClick(e) {
                 if ($('#player_loop').hasClass("active") && $('#player_loop').hasClass("one")) {
@@ -352,6 +348,11 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                                 $('#addToFavoritesBtn').attr('title', 'Add to Favorites');
                             }
                         }
+						
+						if (status.playbackStatus.activeSong.hasOwnProperty('autoplayVote')) {
+							$('#radioSmileBtn').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == 1);
+							$('#radioFrownBtn').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == -1);
+						}
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('urls')) {
                             if (status.playbackStatus.activeSong.urls.hasOwnProperty('songURL')) {

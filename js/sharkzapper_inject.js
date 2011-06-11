@@ -201,18 +201,17 @@ var sharkzapper = new (function SharkZapperPage(debug){
         
             // On song change (or noDelta, or no cache) send urls
             var urls = (status && 
-                (noDelta || 
-                    (status.activeSong && 
-                     status.activeSong != null &&
-                     status.activeSong.SongID && 
-                        (!sharkzapper.cache.playbackStatus || 
-                            (sharkzapper.cache.playbackStatus && 
-                             sharkzapper.cache.playbackStatus.activeSong && 
-                             sharkzapper.cache.playbackStatus.activeSong.SongID && 
-                             status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
-                        )
-                    )
-                )
+					    status.activeSong && 
+						status.activeSong != null && 
+						status.activeSong.SongID && 
+						(noDelta || 
+							(!sharkzapper.cache.playbackStatus || 
+								(sharkzapper.cache.playbackStatus && 
+								 sharkzapper.cache.playbackStatus.activeSong && 
+								 sharkzapper.cache.playbackStatus.activeSong.SongID && 
+								 status.activeSong.SongID != sharkzapper.cache.playbackStatus.activeSong.SongID)
+							)
+						)
             ) ? sharkzapper.helpers.getURLsForSong(status.activeSong) : null;
             
             // Delta status by default (e.g. playstats event)

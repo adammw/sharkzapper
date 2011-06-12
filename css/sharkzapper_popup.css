@@ -81,6 +81,9 @@ body #songDetails div.scrollable {
     right: 115px;
     top: 12px;
 }
+#pin.selected { 
+	background-image: url(../img/pin_2.png);
+}
 #settingsBtn {
     position: absolute;
     right: 136px;

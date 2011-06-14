@@ -42,18 +42,29 @@ body.noAlbumArt #thumbnail #player_controls_playback {
     opacity: 0.96;
     height: 40px;
     margin-top: 0;
+	z-index: 20;
 }
 #player_controls_right {
     margin-top: -40px;
     opacity: 0.02;
-    z-index: 20000;
     position: absolute;
     width: 100px;
     height: 32px;
+	z-index: -1;
     overflow: hidden;
     background: url(http://static.a.gs-cdn.net/webincludes/css/images/player/controls.png) no-repeat top right;
     -webkit-transition-duration: 500ms;
     -webkit-transition-delay: 500ms;
+}
+body:not(.noAlbumArt) #player_controls_right {
+	z-index: 20000;
+}
+body.noAlbumArt #thumbnail {
+	overflow: visible;
+}
+body.noAlbumArt #player_controls_right {
+	opacity: 0.96;
+	-webkit-transition-duration: 500ms;
 }
 #player_controls_right button {
     margin-top: -4px;
@@ -66,6 +77,9 @@ body.noAlbumArt #thumbnail #player_controls_playback {
     margin-top: 0;
     -webkit-transition: opacity ease 200ms, height ease 200ms, margin ease 200ms;
     -webkit-transition-delay: 0;
+}
+body.noAlbumArt #thumbnail:hover #player_controls_right {
+	margin-top: 40px;
 }
 body #songDetails div.scrollable {
     text-wrap: none;

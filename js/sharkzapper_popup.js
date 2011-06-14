@@ -46,12 +46,24 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         }
     };
     sharkzapper.message = {
+		connectPort: function connect_port() {
+			sharkzapper.message.port = chrome.extension.connect({name: "popup"});
+			sharkzapper.message.port.onMessage.addListener(sharkzapper.message.recieve);
+			sharkzapper.message.port.onDisconnect.addListener(function() {
+				console.error('port disconnected!!!');
+				sharkzapper.message.port = null;
+			});
+		},
         send: function message_send(data) {
             data.source = "popup";
             data.notification = $('body').hasClass('notification');
             if (debug) data.timestamp = (new Date()).valueOf();
             if (debug) console.log("sharkzapper:", ">>>", data.command, data);
-        	chrome.extension.sendRequest(data);
+			if (sharkzapper.message.port) {
+				sharkzapper.message.port.postMessage(data);
+			} else {
+				chrome.extension.sendRequest(data);
+			}
         }, 
         recieve: function message_recieve(data) {
             if (debug) console.log("sharkzapper:", "<<<", data.command, data);
@@ -184,8 +196,11 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 sharkzapper.message.send({"command":"openPopup", "url":"sharkzapper_options.html"});
             },
             pinClick: function handle_pinClick(e) {
-                /* TODO: allow for unpinning */
-                sharkzapper.message.send({"command": "pinPopup"});
+				if ($("#pin").hasClass("selected")) {
+					sharkzapper.message.send({"command": "unpinPopup"});
+				} else {
+					sharkzapper.message.send({"command": "pinPopup"});
+				}
             },
             playPauseClick: function handle_playPauseClick(e) {
                 if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.status == 7) { //PLAY_STATUS_COMPLETED
@@ -446,7 +461,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#queue_position_separator, #queue_total').toggleClass('hidden',!status.queue.songs);
                     }
                 }
-            },
+				
+				// SharkZapper specifics
+				if (status.hasOwnProperty('pinnedPopupOpen')) {
+					$('#pin').toggleClass('selected', status.pinnedPopupOpen);
+				}
+			},
             settingsUpdate: function settingsUpdate(oldSettings, newSettings) {
                 if (newSettings.hasOwnProperty('showPlaybackButtons')) {
                     $('#player_controls_playback').toggleClass('hidden', !newSettings.showPlaybackButtons);
@@ -481,7 +501,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     $(el).clearQueue().stop().css('marginLeft',0).children().not(':first-child').remove();
                     var width = $(el).children().width();
                     var clone = $(el).children().eq(0).clone();
+					//TODO: Fix bug where on first change width is 0 and therefore doesn't scroll
                     if (($(el).width() + 10) >= width) return; //Ignore text that fits fine (with some leeway) 
+					console.log('will scroll',el);
                     $(el).append('<span class="sep"> - </span>');
                     $(el).append(clone);
                     width += $(el).children().eq(1).width();
@@ -540,8 +562,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         } catch (e) {
             sharkzapper.listeners.error(e);
         }
-        sharkzapper.message.send({"command":"popupInit"});
-        sharkzapper.message.send({"command":"fetchSettings"}); //TODO: Incorporate into popupInit request
+		sharkzapper.message.connectPort();
+        //sharkzapper.message.send({"command":"popupInit"});
+        //sharkzapper.message.send({"command":"fetchSettings"}); //TODO: Incorporate into popupInit request
         if (debug) console.time('firstStatus');
         
         return sharkzapper;

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+/*
+ * sharkzapper_songnotification.html
+ * This is the song notification for sharkZapper which is shown when the song changes as a HTML notification
+ *
+ * sharkZapper is Copyright (C) 2011 Adam Malcontenti-Wilson <adman.com@gmail.com>
+ * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
+ * You may not create derivative versions of the software without written permission of the author.
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * 
+ * Grooveshark imagery and related media is Copyright (C) Escape Media Group. 
+ * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
+ */
+-->
+<html>
+<head>
+	<title>sharkZapper Song Notification</title>
+	<link rel="stylesheet" href="../css/sharkzapper_songnotification.css" type="text/css" />
+	<script type="text/javascript" src="../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/sharkzapper_songnotification.js"></script>
+</head>
+<body>
+	<img id="albumArt" src="http://beta.grooveshark.com/static/amazonart/sdefault.png" />
+	<div class="songDetail">
+		<p class="scrollable"><span id="songName"></span></p>
+		<p class="scrollable"><span id="artistName"></span></p>
+		<p class="scrollable"><span id="albumName"></span></p>
+	</div>
+	<div class="buttons">
+		<button id="prev" title="Previous">&#x23ee;</button>
+		<button id="play" title="Play/Pause">&#x23ef;</button>
+		<button id="next" title="Next">&#x23ed;</button>
+	</div>
+</body>
+</html>

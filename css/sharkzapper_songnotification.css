@@ -1,0 +1,61 @@
+@font-face {
+	font-family: play_symbols;
+	src: url('../fonts/play_symbols.woff');
+}
+body {
+	font-family: "Lucida Grande", Verdana, Arial, sans-serif;
+	font-size: 12px;
+	background: #090909;
+	color: white;
+	width: 300px;
+	-webkit-user-select: none;
+}
+html, body, p {
+	margin: 0;
+}
+.scrollable {
+	text-wrap: none;
+    white-space: nowrap;
+    height: 1.1em;
+}
+div.songDetail {
+	padding: 0.5em 0 0.5em 0.5em;
+	width: 210px;
+	overflow: hidden;
+	-webkit-mask-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,1) 0.5em, rgba(0,0,0,1) 200px, rgba(0,0,0,0));
+}
+#songName {
+	font-weight: bold;
+}
+img#albumArt {
+	float: left;
+	width: 75px;
+	margin: 0.5em;
+	margin-right: 0;
+	min-height: 75px;
+	-webkit-box-shadow: gray 0px 0px 10px;
+	background: #3D3D3D;
+}
+div.buttons {
+	position: absolute;
+	bottom: 0.5em;
+	right: 0.5em;
+}
+button {
+	-webkit-appearance: none;
+	background: -webkit-linear-gradient(top, hsla(0,0%,24%,0.5), hsla(0,0%,7%,0.5));
+	background-color: hsl(0,0%,12%);
+	border: 0;
+	padding: 2px 6px;
+	cursor: pointer;
+	color: white;
+	border-radius: 4px;
+	font-family: play_symbols;
+	font-size: 18px;
+	text-shadow: black 0 0 3px;
+	-webkit-transition: -webkit-box-shadow 200ms ease, background-color 200ms ease;
+}
+button:hover {
+	background-color: hsl(0,0%,24%);
+	-webkit-box-shadow: gray 0 0 10px;
+}

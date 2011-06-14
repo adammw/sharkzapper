@@ -18,10 +18,10 @@ a, a:hover {
 .fltrht { float: right; }
 #thumbnail { overflow: hidden; }
 #player_controls_right, #player_controls_playback { float: none; }
-body.notification:not(.notPlaying) #albumart {
+body.notification:not(.notPlaying):not(.noAlbumArt) #albumart {
     height: 100px;
 }
-body.notification:not(.notPlaying) #thumbnail #player_controls_playback {
+body.notification:not(.notPlaying):not(.noAlbumArt) #thumbnail #player_controls_playback {
     opacity: 0.02;
     z-index: 20000;
     height: 1px;
@@ -30,8 +30,8 @@ body.notification:not(.notPlaying) #thumbnail #player_controls_playback {
     -webkit-transition-duration: 500ms;
     -webkit-transition-delay: 500ms;
 }
-body.notification:not(.notPlaying) #thumbnail:hover #player_controls_playback,
-body.notification.paused:not(.notPlaying) #thumbnail #player_controls_playback { 
+body.notification:not(.notPlaying):not(.noAlbumArt) #thumbnail:hover #player_controls_playback,
+body.notification.paused:not(.notPlaying):not(.noAlbumArt) #thumbnail #player_controls_playback { 
     margin-top: -40px;
     opacity: 0.96;
     height: 40px;

@@ -22,7 +22,13 @@
 var sharkzapper = new (function SharkZapperBackground(debug){
 	var sharkzapper = this;
 	sharkzapper.version = '1.4.0-beta2';
-	var debugStatusUpdate = false;
+    
+    sharkzapper.setDebugLevel = function(l) {
+        debug = 1; // Always debug sending out setDebugLevel
+        sharkzapper.message.send({"command": "setDebugLevel", "level": l}, 'allports');
+        debug = l;
+        return debug;
+    }
 	
 	/**
 	 * @constructor
@@ -208,8 +214,9 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 		 * @param dest: destination
 		 */
 		send: function message_send(request, dest) {
+            //TODO: rewrite and clean up (but remember to test old things like external commands)
 			if (sharkzapper.message.ports.hasOwnProperty(dest)) {
-				if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">PORT:" +sharkzapper.message.ports[dest].name +">",request.command, request);
+				if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">PORT:" +sharkzapper.message.ports[dest].name +">",request.command, request);
 				if (sharkzapper.message.ports[dest] instanceof Array) {
 					for (i=0;i<sharkzapper.message.ports[dest].length;i++) {
 						sharkzapper.message.ports[dest][i].postMessage(request);
@@ -219,29 +226,40 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 				}
 				return;
 			} 
-			
-			//TODO: rewrite
+            
 			switch (dest) {
 				case 'extension':
 					chrome.extension.sendRequest(request); 
-					if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">E>",request.command,request);
+					if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">E>",request.command,request);
 					break;
 				case 'tab':
 					chrome.tabs.sendRequest(sharkzapper.tabs.openTabIds[0], request); 
-					if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">T>",request.command,request);
+					if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">T>",request.command,request);
 					break;
 				case 'othertabs': // all tabs except first (active) tab
 					for (i=1;i<sharkzapper.tabs.openTabIds.length;i++) {
 						chrome.tabs.sendRequest(sharkzapper.tabs.openTabIds[i], request);
 					}
-					if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">OTHERT>",request.command, request);
+					if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">OTHERT>",request.command, request);
 					break;
 				case 'alltabs': // all tabs including first (active) tab
 					for (i=0;i<sharkzapper.tabs.openTabIds.length;i++) {
 						chrome.tabs.sendRequest(sharkzapper.tabs.openTabIds[i], request);
 					}
-					if (debug && (debugStatusUpdate || request.command != 'statusUpdate')) console.log("sharkzapper:",">ALLT>",request.command, request);
+					if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">ALLT>",request.command, request);
 					break;
+                case 'allports':
+                    for (var dest in sharkzapper.message.ports) {
+                        if (debug && (debug > 1 || request.command != 'statusUpdate')) console.log("sharkzapper:",">PORT:" +sharkzapper.message.ports[dest].name +">",request.command, request);
+                        if (sharkzapper.message.ports[dest] instanceof Array) {
+                            for (i=0;i<sharkzapper.message.ports[dest].length;i++) {
+                                sharkzapper.message.ports[dest][i].postMessage(request);
+                            }
+                        } else {
+                            sharkzapper.message.ports[dest].postMessage(request);
+                        }
+                    }
+                    break;
 				default:
 					console.error('sendRequest called with unknown destination:',dest);
 					break;

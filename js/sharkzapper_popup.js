@@ -93,6 +93,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                     // Update UI
                     sharkzapper.ui.popup.settingsUpdate(oldSettings, sharkzapper.settings);
                     break;
+                    
+                case 'setDebugLevel':
+                    debug = data.level;
+                    break;
             }
         }
     };

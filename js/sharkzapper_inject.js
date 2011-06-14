@@ -364,6 +364,10 @@ var sharkzapper = new (function SharkZapperPage(debug){
         recieve: function message_recieve(data) {
             if (debug) console.log("sharkzapper:", "<P<", data.command, data);
             switch(data.command) {
+                case 'setDebugLevel':
+                    debug = data.level;
+                    break;
+            
                 // Command called by contentscript to clean up and prepare for re-injection
                 case 'cleanUp':
                     sharkzapper.destroy();

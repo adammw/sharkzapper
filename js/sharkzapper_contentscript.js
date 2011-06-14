@@ -86,6 +86,13 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 			case 'injectScript':
 				sharkzapper.inject.injectScript(data.script, this.version);
 				break;
+                
+            case 'setDebugLevel':
+                debug = data.level;
+                this.sendMessage(data);
+                break;
+                
+            // Proxy requests onto injection script via HTML5 Message events
 			case 'prevSong':
 		    case 'pauseSong':
 		    case 'playSong':
@@ -114,7 +121,7 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 				this.sendMessage(data);
 				break;
 			default: 
-				console.warn("Unhandled message:", data.command, data);
+				console.warn("Unhandled message from port:", data.command, data);
 		}
 	}
 	SharkZapperMessages.prototype.handleWindowMessage = function(e) {
@@ -138,7 +145,7 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 				this.sendRequest(request);
 				break;
 			default:
-				console.warn("sharkzapper:", "Unhandled message", request.command, request);
+				console.warn("sharkzapper:", "Unhandled message from injection:", request.command, request);
 		}
 	};
 	SharkZapperMessages.prototype.callback = function(fn) {

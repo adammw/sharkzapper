@@ -198,6 +198,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
             if (status && status.activeSong && status.activeSong.SongID == null) {
                 status = null;
             }
+            
+            if (status && status.activeSong)
+            {
+                sharkzapper.helpers.decodeHTMLEntitiesInStatus(status);
+            }
         
             // On song change (or noDelta, or no cache) send urls
             var urls = (status && 
@@ -239,6 +244,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 // Manually update cache
                 if (!sharkzapper.cache.playbackStatus) {
                     sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                    sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                 }
                 sharkzapper.cache.playbackStatus.activeSong.index = change.fullQueue.activeSong.index;
             
@@ -304,6 +310,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
                     if (!sharkzapper.cache.playbackStatus) {
                         sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                        sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                     }
                     sharkzapper.cache.playbackStatus.activeSong.fromLibrary = 1; 
                     sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"fromLibrary": 1}}, "cached": false, "delta": true});
@@ -319,6 +326,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
                 if (!sharkzapper.cache.playbackStatus) {
                     sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                    sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                 }
                 sharkzapper.cache.playbackStatus.activeSong.fromLibrary = 0; 
                 sharkzapper.cache.playbackStatus.activeSong.isFavorite = 0; 
@@ -334,6 +342,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 // Manually update cache and send update (these objects are hell! + delta requires full object so not used)
                 if (!sharkzapper.cache.playbackStatus) {
                     sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                    sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                 }
                 sharkzapper.cache.playbackStatus.activeSong.fromLibrary = 1;
                 sharkzapper.cache.playbackStatus.activeSong.isFavorite = 1; 
@@ -348,6 +357,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             if (songs.SongID == songId) {
                 if (!sharkzapper.cache.playbackStatus) {
                     sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                    sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                 }
                 sharkzapper.cache.playbackStatus.activeSong.isFavorite = 0; 
                 sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"isFavorite": 0}}, "cached": false, "delta": true});
@@ -593,6 +603,16 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 albumURL: _.cleanUrl(song.AlbumName, song.AlbumID, "album"),
                 artistURL: _.cleanUrl(song.ArtistName, song.ArtistID, "artist")
             };
+        },
+        decodeHTMLEntitiesInStatus: function(playbackStatus) {
+            if (playbackStatus.activeSong) {
+                if (playbackStatus.activeSong.SongName)
+                    playbackStatus.activeSong.SongName = playbackStatus.activeSong.SongName.replace(/&amp\;/g,"&");
+                if (playbackStatus.activeSong.ArtistName)
+                    playbackStatus.activeSong.ArtistName = playbackStatus.activeSong.ArtistName.replace(/&amp\;/g,"&");
+                if (playbackStatus.activeSong.AlbumName)
+                    playbackStatus.activeSong.AlbumName = playbackStatus.activeSong.AlbumName.replace(/&amp\;/g,"&");
+            }
         }
     };
     sharkzapper.destroy = function destroy() {

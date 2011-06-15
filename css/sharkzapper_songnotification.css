@@ -27,12 +27,18 @@ div.songDetail {
 #songName {
 	font-weight: bold;
 }
+#thumbnail {
+    width: 75px;
+    text-align: center;
+    margin: 0;
+    padding: 0.5em;
+    padding-right: 0;
+    float: left;
+}
 img#albumArt {
-	float: left;
-	width: 75px;
-	margin: 0.5em;
-	margin-right: 0;
-	min-height: 75px;
+	display: inline-block;
+    height: 75px;
+    max-width: 75px;
 	-webkit-box-shadow: gray 0px 0px 10px;
 	background: #3D3D3D;
 }

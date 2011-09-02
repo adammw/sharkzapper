@@ -665,4 +665,4 @@ var sharkzapper = new (function SharkZapperPage(debug){
         };
     })();
     return this.init();
-})(true);
+})(false);

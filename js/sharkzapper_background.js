@@ -666,7 +666,7 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 	}
 	
 	return sharkzapper.init();
-})(true) //debug
+})(false) //debug
  
 //TODO: Rewrite in similar style to popup and content script for 1.4+
 // Global variables

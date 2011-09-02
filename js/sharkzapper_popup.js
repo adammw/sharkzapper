@@ -574,7 +574,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         return sharkzapper;
     };
     return this.init();
-})(1); //debug level: 0=none, 1=most, 2=all
+})(0); //debug level: 0=none, 1=most, 2=all
 /*
 var defaultAlbumArtUrl = 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png';	
 var statusMap = ["PLAY_STATUS_NONE", "PLAY_STATUS_INITIALIZING", "PLAY_STATUS_LOADING", "PLAY_STATUS_PLAYING", "PLAY_STATUS_PAUSED", "PLAY_STATUS_BUFFERING", "PLAY_STATUS_FAILED", "PLAY_STATUS_COMPLETED"];

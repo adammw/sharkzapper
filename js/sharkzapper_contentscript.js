@@ -214,4 +214,4 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 			sharkzapper.init();
 		}
 	})();
-})(true); //debug
+})(false); //debug

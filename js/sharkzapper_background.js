@@ -21,7 +21,7 @@
  */
 var sharkzapper = new (function SharkZapperBackground(debug){
 	var sharkzapper = this;
-	sharkzapper.version = '1.4.0-beta2';
+	sharkzapper.version = '1.4.0';
     
     sharkzapper.setDebugLevel = function(l) {
         debug = 1; // Always debug sending out setDebugLevel

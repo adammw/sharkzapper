@@ -13,7 +13,7 @@
  */
 var sharkzapper = new (function SharkZappperContentScript(debug) {
 	var sharkzapper = this;
-	sharkzapper.version = '1.4.0-beta2';
+	sharkzapper.version = '1.4.0';
 	
 	sharkzapper.listeners = {
 		bind: function bind_listeners() {

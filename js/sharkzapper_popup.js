@@ -336,6 +336,56 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    if (status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) {
     					    $('#artistName').text(status.playbackStatus.activeSong.ArtistName);
 					    }
+              if (status.playbackStatus.activeSong.hasOwnProperty('SongName') && status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) { 
+                var lyricsBox = document.getElementById("lyrics");
+                document.body.style.height = "220px";
+                lyricsBox.style.height = "30px";
+
+                updateLyrics = function(res) {
+                  var lyricsUrl = res.results[0];
+                  lyricsUrl = lyricsUrl.replace("<url>", "");
+                  lyricsUrl = lyricsUrl.replace("</url>", "");
+                  lyricsUrl = unescape(lyricsUrl);
+                  if(-1 == lyricsUrl.indexOf("action=edit")) {
+                    var lyricsContentQuery = "SELECT * FROM html WHERE url=\"" + lyricsUrl + "\" and xpath=\'//div[@class=\\'lyricbox\\']//p\'";
+                    console.log(lyricsContentQuery);
+                    $.ajax({
+                      'url' : 'http://query.yahooapis.com/v1/public/yql?',
+                      'data' : {'q': lyricsContentQuery },
+                      'dataType' : 'jsonp',
+                      'jsonp' : 'callback',
+                      'jsonpCallback' : 'processLyrics'
+                    });
+                  }
+                  else
+                  {
+                    $('#lyricsContent').text("No lyrics found");
+                  }
+                }
+
+                processLyrics = function(res) {
+                  if(typeof res.results[0] === "undefined")
+                  {
+                    document.getElementById('lyricsContent').innerHTML = "Something went wrong while fetching the lyrics";
+                  }
+                  else
+                  {
+                    document.body.style.height = "400px";
+                    lyricsBox.style.height = "220px";
+                    res.results[0] = res.results[0].replace(/\n\s*\n/g, "<br />");
+                    document.getElementById('lyricsContent').innerHTML = res.results[0];
+                  }
+                }
+                $('#lyricsContent').text("Searching for lyrics");
+                var lyricsUrlQuery = "SELECT content FROM xml WHERE url=\"http://lyrics.wikia.com/api.php?artist=" + encodeURIComponent(status.playbackStatus.activeSong.ArtistName) + "&song=" + encodeURIComponent(status.playbackStatus.activeSong.SongName) + "&fmt=xml\" and itemPath=\"LyricsResult.url\"";
+                $.ajax({
+                  'url' : 'http://query.yahooapis.com/v1/public/yql?format=xml',
+                  'data' : {'q': lyricsUrlQuery },
+                  'dataType' : 'jsonp',
+                  'jsonp' : 'callback',
+                  'jsonpCallback' : 'updateLyrics'
+                });
+              }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('SongName') || status.playbackStatus.activeSong.hasOwnProperty('AlbumName') || status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) { 
 					        sharkzapper.ui.popup.updateScrollables()
 					    }

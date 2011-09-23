@@ -1,6 +1,6 @@
 body { 
     min-width: 300px;
-    min-height: 155px;
+    min-height: 220px;
     -webkit-user-select: none;
     cursor: default;
 }
@@ -290,4 +290,18 @@ body.notification #volumeControl {
     height: 8px;
     bottom: -3px;
     background: url(../img/volume_range.png) repeat-x;
+}
+#lyricsTitle {
+    position: absolute;
+    top: 155px;
+    right: 140px;
+}
+#lyrics {
+    position: absolute;
+    top: 170px;
+    right: 8px;
+    left: 8px;
+    height: 40px;
+    overflow:auto;
+    -webkit-user-select: text;
 }

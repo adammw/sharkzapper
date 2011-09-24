@@ -338,8 +338,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    }
               if (status.playbackStatus.activeSong.hasOwnProperty('SongName') && status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) { 
                 var lyricsBox = document.getElementById("lyrics");
-                document.body.style.height = "220px";
-                lyricsBox.style.height = "30px";
+                $("body").toggleClass("lyricsFound", false);
+                $("#lyrics").toggleClass("lyricsContentFound", false);
+                $("#lyrics").toggleClass("lyricsContentNotFound", true);
 
                 updateLyrics = function(res) {
                   var lyricsUrl = res.results[0];
@@ -348,7 +349,6 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                   lyricsUrl = unescape(lyricsUrl);
                   if(-1 == lyricsUrl.indexOf("action=edit")) {
                     var lyricsContentQuery = "SELECT * FROM html WHERE url=\"" + lyricsUrl + "\" and xpath=\'//div[@class=\\'lyricbox\\']//p\'";
-                    console.log(lyricsContentQuery);
                     $.ajax({
                       'url' : 'http://query.yahooapis.com/v1/public/yql?',
                       'data' : {'q': lyricsContentQuery },
@@ -370,8 +370,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                   }
                   else
                   {
-                    document.body.style.height = "400px";
-                    lyricsBox.style.height = "220px";
+                    $("body").toggleClass("lyricsFound", true);
+                    $("#lyrics").toggleClass("lyricsContentNotFound", false);
+                    $("#lyrics").toggleClass("lyricsContentFound", true);
                     res.results[0] = res.results[0].replace(/\n\s*\n/g, "<br />");
                     document.getElementById('lyricsContent').innerHTML = res.results[0];
                   }

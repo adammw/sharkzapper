@@ -4,6 +4,9 @@ body {
     -webkit-user-select: none;
     cursor: default;
 }
+.lyricsFound {
+  min-height: 400px;
+}
 body.notification {
     min-height: 115px;
 }
@@ -301,7 +304,12 @@ body.notification #volumeControl {
     top: 170px;
     right: 8px;
     left: 8px;
-    height: 40px;
     overflow:auto;
     -webkit-user-select: text;
+}
+.lyricsContentNotFound {
+  height: 40px;
+}
+.lyricsContentFound {
+  height: 220px;
 }

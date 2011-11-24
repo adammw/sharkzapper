@@ -31,30 +31,39 @@
 	        </a>
         </h1>
         <div id="header_mainNavigation" class="hbox">
-            <a class="active">Now Playing</a>
-            <a>Search</a>
-            <a>Explore</a>
+            <a class="active" href="#now_playing">Now Playing</a>
+            <a href="#search">Search</a>
+            <a href="#/explore">Explore</a>
         </div>
 	    <a id="pin" title="Pin this window to bottom corner"></a>
     </div>
-    <div id="now_playing" class="hbox full_width">
-        <div id="thumbnail">
-    		<img id="albumart" alt="Album Art" class="" src="http://images.grooveshark.com/static/albums/90_album.png" />
-        </div>
-	    <div id="songDetails" class="flex vbox">
-            <div id="scrollContainer" class="flex">
-		        <div class="scrollable"><a id="songName"></a></div>
-		        <div class="scrollable"><a id="albumName"></a></div>
-		        <div class="scrollable"><a id="artistName"></a></div>
+    <div id="tab_container" class="hbox full_width tab_height flex">
+        <div id="now_playing" class="hbox flex">
+            <div id="thumbnail">
+        		<img id="albumart" alt="Album Art" class="" src="http://images.grooveshark.com/static/albums/90_album.png" />
             </div>
-            <div id="queueDetail" class="hbox">
-                <div class="flex"></div>
-                <div id="queuePosition">
-                    <span id="queue_current_position"></span> /
-                    <span id="queue_total"></span>
+	        <div id="songDetails" class="flex vbox">
+                <div id="scrollContainer" class="flex">
+		            <div class="scrollable"><a id="songName"></a></div>
+		            <div class="scrollable"><a id="albumName"></a></div>
+		            <div class="scrollable"><a id="artistName"></a></div>
                 </div>
-            </div>
-	    </div>
+                <div id="queueDetail" class="hbox">
+                    <div class="flex"></div>
+                    <div id="queuePosition">
+                        <span id="queue_current_position"></span> /
+                        <span id="queue_total"></span>
+                    </div>
+                </div>
+	        </div>
+        </div>
+        <div id="search" class="centerbox flex" style="display: none">
+            <form class="searchbar inPageSearchBar inPageSearch">
+                <a class="icon"></a>
+                <input class="search" id="searchBox" type="text" value="" placeholder="Search" autocomplete="off" />
+                <a class="remove" style="display: none"></a>
+            </form>
+        </div>
     </div>
     <div id="player" class="main_background hbox full_width">
         <div id="player_controls_playback" class="controls autohide bottom hbox">

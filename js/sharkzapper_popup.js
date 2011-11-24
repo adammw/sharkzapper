@@ -123,7 +123,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_options').bind('click',sharkzapper.ui.listeners.settingsClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
-	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
+                $('#header_mainNavigation a').bind('click',sharkzapper.ui.listeners.navClick);
+	            $('form.inPageSearchBar').bind('submit', sharkzapper.ui.listeners.searchSubmit);
+                $('.inPageSearchBar a.icon').bind('click',sharkzapper.ui.listeners.searchSubmit);
+                $('#searchBox').bind('blur',sharkzapper.ui.listeners.searchBlur);
+                $('#searchBox').bind('keydown',sharkzapper.ui.listeners.searchKeydown);
+                $('.inPageSearchBar a.remove').bind('click',sharkzapper.ui.listeners.searchRemoveClick);
 	            $('#player_volume').bind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
 	            $('#player_volume').bind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
 	            $('#volumeControl').bind('mouseenter', sharkzapper.ui.listeners.volumeControlMouseEnter);
@@ -148,7 +153,12 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_options').unbind('click',sharkzapper.ui.listeners.settingsClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
-	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
+                $('#header_mainNavigation a').unbind('click',sharkzapper.ui.listeners.navClick);
+	            $('form.inPageSearchBar').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
+                $('.inPageSearchBar a.icon').unbind('click',sharkzapper.ui.listeners.searchSubmit);
+                $('.inPageSearchBar a.remove').unbind('click',sharkzapper.ui.listeners.searchRemoveClick);
+                $('#searchBox').unbind('keydown',sharkzapper.ui.listeners.searchKeydown);
+                $('#searchBox').unbind('blur',sharkzapper.ui.listeners.searchBlur);
 	            $('#player_volume').unbind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
 	            $('#player_volume').unbind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
 	            $('#volumeControl').unbind('mouseenter', sharkzapper.ui.listeners.volumeControlMouseEnter);
@@ -160,6 +170,19 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 e.preventDefault();
                 if (!$('#searchBox').val().length) return;
                 sharkzapper.message.send({"command": "openGSTab", "url": "#/search?q=" + escape($('#searchBox').val())});
+            },
+            searchBlur: function handle_searchBlur(e) {
+                if (!$(this).val()) {
+                    $(this).siblings("a.remove").hide();
+                }
+            },
+            searchKeydown: function handle_searchKeydown(e) {
+                console.log('keydown..');
+                $(this).siblings("a.remove").toggle(Boolean($(this).val()));
+            },
+            searchRemoveClick: function handle_searchRemoveClick(e) {
+                $(this).hide();
+                $(this).siblings("input").val("").focus();
             },
             addToFavoritesClick: function handle_addToFavoritesClick(e) {
                 if ($('#addToFavoritesBtn').hasClass('selected')) {
@@ -233,6 +256,17 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             },
             songInfoClick: function handle_songInfoClick(e) {
                 sharkzapper.message.send({"command":"openGSTab", "url": $(e.target).attr('href')});
+            },
+            navClick: function handle_navClick(e) {
+                if ($(e.target).attr('href').substring(0,2) == '#/') {
+                    sharkzapper.message.send({"command":"openGSTab", "url": $(e.target).attr('href')});
+                } else {
+                    $("#header_mainNavigation>a").not(e.target).removeClass('active');
+                    $(e.target).addClass('active');
+                    $("#tab_container>div").not($(e.target).attr('href')).stop(false,true).fadeOut(function(){
+                        $($(e.target).attr('href')).stop(false,true).fadeIn();
+                    });
+                }
             },
             volumeClick: function handle_volumeClick(e) {
                 sharkzapper.message.send({"command":"toggleMute"});

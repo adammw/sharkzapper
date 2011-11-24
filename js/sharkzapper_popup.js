@@ -14,7 +14,7 @@
 var sharkzapper = new (function SharkZapperPopup(debug){
     var sharkzapper = this;
     sharkzapper.urls = {
-        albumartdefault: 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png',
+        albumartdefault: 'http://images.grooveshark.com/static/albums/90_album.png',
         albumartroot: 'http://beta.grooveshark.com/static/amazonart/'
     }
     sharkzapper.cache = {};
@@ -126,10 +126,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
 	            $('#player_volume').bind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
 	            $('#player_volume').bind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
-	            $('#volumeSlider').bind('mouseenter', sharkzapper.ui.listeners.volumeSliderMouseEnter);
-	            $('#volumeSlider').bind('mouseleave', sharkzapper.ui.listeners.volumeSliderMouseLeave);
+	            $('#volumeControl').bind('mouseenter', sharkzapper.ui.listeners.volumeControlMouseEnter);
+	            $('#volumeControl').bind('mouseleave', sharkzapper.ui.listeners.volumeControlMouseLeave);
 	            $('#volumeSlider').bind('slidestart', sharkzapper.ui.listeners.volumeSliderSlideStart);
-	            $('#volumeSlider').bind('slideend', sharkzapper.ui.listeners.volumeSliderSlideEnd);
+	            $('#volumeSlider').bind('slidestop', sharkzapper.ui.listeners.volumeSliderSlideStop);
             },
             unbind: function unbind_ui_listeners() {
                 $("#volumeSlider").unbind('slide slidechange', sharkzapper.ui.listeners.volumeUpdate);
@@ -151,10 +151,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
 	            $('#player_volume').unbind('mouseenter', sharkzapper.ui.listeners.volumeBtnMouseEnter);
 	            $('#player_volume').unbind('mouseleave', sharkzapper.ui.listeners.volumeBtnMouseLeave);
-	            $('#volumeSlider').unbind('mouseenter', sharkzapper.ui.listeners.volumeSliderMouseEnter);
-	            $('#volumeSlider').unbind('mouseleave', sharkzapper.ui.listeners.volumeSliderMouseLeave);
+	            $('#volumeControl').unbind('mouseenter', sharkzapper.ui.listeners.volumeControlMouseEnter);
+	            $('#volumeControl').unbind('mouseleave', sharkzapper.ui.listeners.volumeControlMouseLeave);
 	            $('#volumeSlider').bind('slidestart', sharkzapper.ui.listeners.volumeSliderSlideStart);
-	            $('#volumeSlider').bind('slideend', sharkzapper.ui.listeners.volumeSliderSlideEnd);
+	            $('#volumeSlider').bind('slidestop', sharkzapper.ui.listeners.volumeSliderSlideStop);
             },
             searchSubmit: function handle_searchSubmit(e) {
                 e.preventDefault();
@@ -238,34 +238,52 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 sharkzapper.message.send({"command":"toggleMute"});
             },
             volumeBtnMouseEnter: function handle_volumeBtnMouseEnter(e) {
-                console.log('showVolumeControlOnHover',sharkzapper.settings.showVolumeControlOnHover);
+                if (debug) console.log('showVolumeControlOnHover',sharkzapper.settings.showVolumeControlOnHover);
                 if (sharkzapper.settings.hasOwnProperty('showVolumeControlOnHover') && !sharkzapper.settings.showVolumeControlOnHover) return;
+                if (sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
                 $("#volumeControl").fadeIn(200).focus();
+                $('#volumeControl').data('closeOnSlideStop', false);
             },
             volumeBtnMouseLeave: function handle_volumeBtnMouseLeave(e) {
-                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+                if (sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
                 sharkzapper.ui.timeouts.volumeSlider = setTimeout(sharkzapper.ui.listeners.volumeSliderTimeout,1200);
             },
-            volumeSliderMouseEnter: function handle_volumeSliderMouseEnter(e) {
-                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+            volumeControlMouseEnter: function handle_volumeControlMouseEnter(e) {
+                if (sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
             },
-            volumeSliderMouseLeave: function handle_volumeSliderMouseLeave(e) {
-                if(sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
+            volumeControlMouseLeave: function handle_volumeControlMouseLeave(e) {
+                if (sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
                 sharkzapper.ui.timeouts.volumeSlider = setTimeout(sharkzapper.ui.listeners.volumeSliderTimeout,600);
             },
             volumeSliderSlideStart: function handle_volumeSliderSlideStart(e) {
                 $(this).data('sliding',true);
             }, 
-            volumeSliderSlideEnd: function handle_volumeSliderSlideEnd(e) {
+            volumeSliderSlideStop: function handle_volumeSliderSlideStop(e) {
                 $(this).data('sliding',false);
                 if ($(this).data('slideendvalue')) {
                     $('#volumeSlider').slider("option", "value", $(this).data('slideendvalue'));
                 }
+                if ($('#volumeControl').data('closeOnSlideStop')) {
+                    $("#volumeControl").fadeOut(200).blur();
+                }
             },
             volumeSliderTimeout: function handle_volumeSliderTimeout() {
-                $("#volumeControl").fadeOut(200).blur();
+                if (debug) console.log('volumeSlider timeout, was sliding: ',$('#volumeSlider').data('sliding'));
+                if (!$('#volumeSlider').data('sliding')) {
+                    $("#volumeControl").fadeOut(200).blur();
+                } else {
+                    $('#volumeControl').data('closeOnSlideStop', true);
+                }
             },
             volumeUpdate: function handle_volumeUpdate(e,b) {
+                var steps = ["off", "one", "two", "three", "four", "five"];
+                var muted = $('#player_volume').hasClass('muted');
+                if (typeof b.value == "number") { 
+                    var stepClass = steps[Math.ceil(b.value / 20)] || "";
+                    $("#player_volume").attr("class", "player_control main_asset " + stepClass);
+                }
+                $('#player_volume').toggleClass('muted', muted);
+
                 // Filter out programattic changes
                 if (!e.originalEvent) return;
                 
@@ -282,7 +300,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 try {
                     // Initalise jQuery UI components
                     $("#volumeSlider").slider({
-                        orientation: "horizontal",
+                        orientation: "vertical",
                         range: "min",
                         min: 0,
                         max: 100, 
@@ -420,7 +438,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 }
                 if (status.playbackProperties) {
                     if (status.playbackProperties.hasOwnProperty('isMuted')) {
-                        $('#player_volume').toggleClass('mute', status.playbackProperties.isMuted);
+                        $('#player_volume').toggleClass('muted', status.playbackProperties.isMuted);
                     }
                     if (status.playbackProperties.hasOwnProperty('crossfadeEnabled')) {
                         $('#player_crossfade').toggleClass('active', status.playbackProperties.crossfadeEnabled);

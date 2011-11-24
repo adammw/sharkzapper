@@ -120,7 +120,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
 	            $('#radioSmileBtn').bind('click', sharkzapper.ui.listeners.radioSmileClick);
 	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
-	            $('#settingsBtn').bind('click',sharkzapper.ui.listeners.settingsClick);
+	            $('#player_options').bind('click',sharkzapper.ui.listeners.settingsClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').bind('submit', sharkzapper.ui.listeners.searchSubmit);
@@ -145,7 +145,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
 	            $('#radioSmileBtn').unbind('click', sharkzapper.ui.listeners.radioSmileClick);
                 $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
-	            $('#settingsBtn').unbind('click',sharkzapper.ui.listeners.settingsClick);
+	            $('#player_options').unbind('click',sharkzapper.ui.listeners.settingsClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
 	            $('#search_form').unbind('submit', sharkzapper.ui.listeners.searchSubmit);

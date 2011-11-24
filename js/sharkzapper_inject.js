@@ -246,7 +246,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
                     sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
                 }
-                sharkzapper.cache.playbackStatus.activeSong.index = change.fullQueue.activeSong.index;
+                if (sharkzapper.cache.playbackStatus.activeSong) {
+                    sharkzapper.cache.playbackStatus.activeSong.index = change.fullQueue.activeSong.index;
+                }
             
                 // Prepare and send update
                 var message = {"command": "statusUpdate", "playbackStatus": {"activeSong": {"index": change.fullQueue.activeSong.index}}, "cached": false, "delta": true};

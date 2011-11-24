@@ -16,12 +16,12 @@
  * Creates main sharkzapper background object
  *
  * @this {SharkZapperBackground}
- * @version 1.4.0
+ * @version 1.4.1
  * @param {Boolean} debug
  */
 var sharkzapper = new (function SharkZapperBackground(debug){
 	var sharkzapper = this;
-	sharkzapper.version = '1.4.0';
+	sharkzapper.version = '1.4.1';
     
     sharkzapper.setDebugLevel = function(l) {
         debug = 1; // Always debug sending out setDebugLevel

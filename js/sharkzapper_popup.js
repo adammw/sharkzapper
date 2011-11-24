@@ -122,7 +122,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#player_options').bind('click',sharkzapper.ui.listeners.settingsClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
-	            $('#songName, #artistName, #albumName').bind('click',sharkzapper.ui.listeners.songInfoClick);
+	            $('#songDetails').on('click','.songName, .artistName, .albumName',sharkzapper.ui.listeners.songInfoClick);
                 $('#header_mainNavigation a').bind('click',sharkzapper.ui.listeners.navClick);
 	            $('form.inPageSearchBar').bind('submit', sharkzapper.ui.listeners.searchSubmit);
                 $('.inPageSearchBar a.icon').bind('click',sharkzapper.ui.listeners.searchSubmit);
@@ -152,7 +152,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#player_options').unbind('click',sharkzapper.ui.listeners.settingsClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
-	            $('#songName, #artistName, #albumName').unbind('click',sharkzapper.ui.listeners.songInfoClick);
+	            $('#songDetails').off('click','.songName, .artistName, .albumName',sharkzapper.ui.listeners.songInfoClick);
                 $('#header_mainNavigation a').unbind('click',sharkzapper.ui.listeners.navClick);
 	            $('form.inPageSearchBar').unbind('submit', sharkzapper.ui.listeners.searchSubmit);
                 $('.inPageSearchBar a.icon').unbind('click',sharkzapper.ui.listeners.searchSubmit);
@@ -383,16 +383,16 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         $('#player_play_pause, #player_controls_right button').removeAttr('disabled').removeClass('disabled');
                         if (debug) console.timeEnd('firstStatus');
                         if (status.playbackStatus.activeSong.hasOwnProperty('SongName')) {
-                            $('#songName').text(status.playbackStatus.activeSong.SongName);
+                            $('.songName').text(status.playbackStatus.activeSong.SongName);
                         } 
                         if (status.playbackStatus.activeSong.hasOwnProperty('AlbumName')) {
-    					    $('#albumName').text(status.playbackStatus.activeSong.AlbumName);
+    					    $('.albumName').text(status.playbackStatus.activeSong.AlbumName);
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) {
-    					    $('#artistName').text(status.playbackStatus.activeSong.ArtistName);
+    					    $('.artistName').text(status.playbackStatus.activeSong.ArtistName);
 					    }
 					    if (status.playbackStatus.activeSong.hasOwnProperty('SongName') || status.playbackStatus.activeSong.hasOwnProperty('AlbumName') || status.playbackStatus.activeSong.hasOwnProperty('ArtistName')) { 
-					        sharkzapper.ui.popup.updateScrollables()
+					        sharkzapper.ui.popup.updateScrollables();
 					    }
 					    
 					    if (status.playbackStatus.activeSong.hasOwnProperty('CoverArtFilename')) {
@@ -430,13 +430,13 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('urls')) {
                             if (status.playbackStatus.activeSong.urls.hasOwnProperty('songURL')) {
-                                $('#songName').attr('href',status.playbackStatus.activeSong.urls.songURL);
+                                $('.songName').attr('href',status.playbackStatus.activeSong.urls.songURL);
                             }
                             if (status.playbackStatus.activeSong.urls.hasOwnProperty('albumURL')) {
-                                $('#albumName').attr('href',status.playbackStatus.activeSong.urls.albumURL);
+                                $('.albumName').attr('href',status.playbackStatus.activeSong.urls.albumURL);
                             }
                             if (status.playbackStatus.activeSong.urls.hasOwnProperty('artistURL')) {
-                                $('#artistName').attr('href',status.playbackStatus.activeSong.urls.artistURL);
+                                $('.artistName').attr('href',status.playbackStatus.activeSong.urls.artistURL);
                             }
                         }
                     }
@@ -808,15 +808,15 @@ chrome.extension.onRequest.addListener(
 				    $('button').removeAttr('disabled');
 					$('button').removeClass('disabled');
 				
-					$('#songName').text(request.currentSong.SongName);
-					$('#albumName').text(request.currentSong.AlbumName);
-					$('#artistName').text(request.currentSong.ArtistName);
+					$('.songName').text(request.currentSong.SongName);
+					$('.albumName').text(request.currentSong.AlbumName);
+					$('.artistName').text(request.currentSong.ArtistName);
 					if (request.urls) {
-					    $('#songName').attr('href', request.urls.song);
-					    $('#albumName').attr('href', request.urls.album);
-					    $('#artistName').attr('href', request.urls.artist);
+					    $('.songName').attr('href', request.urls.song);
+					    $('.albumName').attr('href', request.urls.album);
+					    $('.artistName').attr('href', request.urls.artist);
 					} else {
-						$('#songName, #albumName, #artistName').removeAttr('href');
+						$('.songName, .albumName, .artistName').removeAttr('href');
 					}
 					$('#albumart').attr('alt', request.currentSong.AlbumName);
 					$('#player_elapsed').text(Math.floor(request.playbackStatus.position / 1000 / 60) + ":" + (Math.floor(request.playbackStatus.position / 1000) % 60).toFixed().pad(2, "0"));
@@ -855,9 +855,9 @@ chrome.extension.onRequest.addListener(
 					songId = request.currentSong.SongID;
 				} else { 
 					songId = null;
-					$('#songName').text('');
-					$('#albumName').text('');
-					$('#artistName').text('');
+					$('.songName').text('');
+					$('.albumName').text('');
+					$('.artistName').text('');
 					$('#player_elapsed').text('');
 					$('#player_duration').text('');
 					$('#player_play_pause').attr('disabled','disabled');

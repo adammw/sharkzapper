@@ -525,14 +525,20 @@ var sharkzapper = new (function SharkZapperPage(debug){
     };
     sharkzapper.helpers = {
         delta: function delta(new_data, key) {
+            var j = 0;
             if (!sharkzapper.cache[key]) {
                 sharkzapper.cache[key] = new_data;
                 return new_data;
             } else {
                 var old_data = sharkzapper.cache[key];
                 var delta_data = (typeof new_data == 'object' && new_data != null) ? (function calc_delta(new_data, old_data) {
-                    if (old_data == null) {
-                        old_data = {};
+                    j++;
+                    if (j > 99) {
+                        console.error('recusion limit reached. killing.');
+                        return null;
+                    }
+                    if (old_data == null || old_data == undefined) {
+                        return new_data;
                     }
                     var delta_data = {};
                     for (i in new_data) {

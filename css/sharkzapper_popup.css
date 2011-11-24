@@ -167,6 +167,7 @@ button span {
     border-left: hsla(0,0%,18%,0.8) 1px solid;
     box-shadow: -1px -1px 1px #000;
     border-top-left-radius: 8px;
+    white-space: nowrap;
 }
 
 

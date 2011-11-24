@@ -242,6 +242,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 if (sharkzapper.settings.hasOwnProperty('showVolumeControlOnHover') && !sharkzapper.settings.showVolumeControlOnHover) return;
                 if (sharkzapper.ui.timeouts.volumeSlider) clearTimeout(sharkzapper.ui.timeouts.volumeSlider);
                 $("#volumeControl").fadeIn(200).focus();
+                $('#queuePosition').animate({width:'hide'});
                 $('#volumeControl').data('closeOnSlideStop', false);
             },
             volumeBtnMouseLeave: function handle_volumeBtnMouseLeave(e) {
@@ -265,12 +266,14 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 }
                 if ($('#volumeControl').data('closeOnSlideStop')) {
                     $("#volumeControl").fadeOut(200).blur();
+                    $('#queuePosition').animate({width:'show'});
                 }
             },
             volumeSliderTimeout: function handle_volumeSliderTimeout() {
                 if (debug) console.log('volumeSlider timeout, was sliding: ',$('#volumeSlider').data('sliding'));
                 if (!$('#volumeSlider').data('sliding')) {
                     $("#volumeControl").fadeOut(200).blur();
+                    $('#queuePosition').animate({width:'show'});
                 } else {
                     $('#volumeControl').data('closeOnSlideStop', true);
                 }

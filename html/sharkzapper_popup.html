@@ -17,65 +17,67 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
 <head>
 	<title>SharkZapper</title>
-	<link rel="stylesheet" href="http://static.a.gs-cdn.net/webincludes/css/production.css?20101203.13" type="text/css" />
 	<link rel="stylesheet" href="../css/sharkzapper_popup.css" type="text/css" />
 	<script type="text/javascript" src="../js/jquery.min.js"></script>
 	<script type="text/javascript" src="../js/jquery-ui-1.8.7.slider.min.js"></script>
 	<script type="text/javascript" src="../js/encoder.js"></script>
 	<script type="text/javascript" src="../js/sharkzapper_popup.js"></script>
 </head>
-<body>
-	<div id="header">
-		<a id="grooveshark" title="Open Grooveshark">
-			<span>Grooveshark</span>
-		</a>
-		<a id="settingsBtn" title="Open sharkZapper settings"></a>
-		<a id="pin" title="Pin this window to bottom corner"></a>
-	</div>
-	<div id="bufferinglogo" class="hidden"></div>
-	<div id="thumbnail">
-	    <div id="player_controls_right">
-    	    <button id="player_shuffle" disabled="disabled" class="player_control" title="Shuffle Songs"></button>
-    	    <button id="player_loop" disabled="disabled" class="player_control" title="Loop Songs"></button>
-    	    <button id="player_crossfade" disabled="disabled" class="player_control" title="Crossfade Between Songs"></button>
+<body class="vbox">
+    <div id="header" class="main_background hbox full_width">
+        <h1>
+	        <a id="grooveshark" class="main_asset" title="Open Grooveshark">
+		        <span>Grooveshark</span>
+	        </a>
+        </h1>
+        <div id="header_mainNavigation" class="hbox">
+            <a class="active">Now Playing</a>
+            <a>Search</a>
+            <a>Explore</a>
+        </div>
+	    <a id="pin" title="Pin this window to bottom corner"></a>
+    </div>
+    <div id="now_playing" class="hbox full_width">
+        <div id="thumbnail">
+    		<img id="albumart" alt="Album Art" class="" src="http://images.grooveshark.com/static/albums/90_album.png" />
+        </div>
+	    <div id="songDetails" class="flex vbox">
+            <div id="scrollContainer" class="flex">
+		        <div class="scrollable"><a id="songName"></a></div>
+		        <div class="scrollable"><a id="albumName"></a></div>
+		        <div class="scrollable"><a id="artistName"></a></div>
+            </div>
+            <div id="queueDetail" class="hbox">
+                <div class="flex"></div>
+                <div id="queuePosition">
+                    <span id="queue_current_position"></span> /
+                    <span id="queue_total"></span>
+                </div>
+            </div>
 	    </div>
-	    <div id="queue_position" class="hidden">
-	        <span id="queue_current_position"></span>
-	        <span id="queue_position_separator">/</span>
-	        <span id="queue_total"></span>
+    </div>
+    <div id="player" class="main_background hbox full_width">
+        <div id="player_controls_playback" class="controls autohide bottom hbox">
+			<button id="player_previous" disabled="disabled" class="player_control main_asset" title="Previous"></button>
+			<button id="player_play_pause" disabled="disabled" class="player_control main_asset" title="Play/Pause"></button>
+			<button id="player_next" disabled="disabled" class="player_control main_asset" title="Next"></button>
+		</div>
+        <div id="player_times" class="flex">
+            <span id="player_elapsed"></span> /
+            <span id="player_duration"></span>
+        </div>
+        <div id="player_controls_right" class="controls autohide top hbox main_background">
+    	    <button id="player_shuffle" disabled="disabled" class="player_control main_asset" title="Shuffle Songs"></button>
+    	    <button id="player_loop" disabled="disabled" class="player_control main_asset" title="Loop Songs"></button>
+    	    <button id="player_crossfade" disabled="disabled" class="player_control main_asset" title="Crossfade Between Songs"></button>
+    	    <button id="player_options" class="player_control main_asset" title="Open sharkZapper settings"></button>
+            <div id="player_volume_group">
+                <div id="volumeControl">
+                    <div id="volumeSlider"></div>
+                </div>
+                <button id="player_volume" class="player_control main_asset" type="button" title="Sound Volume. Click to Mute."></button>
+            </div>
 	    </div>
-		<img id="albumart" alt="Album Art" class="hidden" src="http://static.a.gs-cdn.net/webincludes/images/default/album_100.png" />
-		<div id="player_controls_playback">
-			<button id="player_previous" disabled="disabled" class="player_control" title="Previous"></button>
-			<button id="player_play_pause" disabled="disabled" class="player_control" title="Play/Pause"></button>
-			<button id="player_next" disabled="disabled" class="player_control" title="Next"></button>
-		</div>
-	</div>
-	<div id="songDetails" class="hidden">
-		<div class="scrollable"><a id="songName"></a></div>
-		<div class="scrollable"><a id="albumName"></a></div>
-		<div class="scrollable"><a id="artistName"></a></div>
-		
-	</div>
-	<div id="lowerControls" class="hidden">
-		<div id="playerDetails_nowPlaying">
-			<a class="btn btn_style1 icon add"  title="Add to My Music" id="addToLibraryBtn"></a>
-			<a class="btn btn_style1 icon favorite" title="Add to Favorites" id="addToFavoritesBtn"></a>
-			<a class="btn btn_style1 radio_btn icon smile" title="Smile" id="radioSmileBtn"></a>
-			<a class="btn btn_style1 radio_btn icon frown" title="Frown" id="radioFrownBtn"></a>
-		</div>
-		<div id="volumeControl">
-		    <div id="volumeSlider">
-		    </div>
-		</div>
-		<div id="player_times"><span id="player_elapsed"></span><span id="player_duration"></span></div>
-		<div class="fltrht"><button id="player_volume" class="player_control" title="Volume Mute"></button></div>
-		
-	</div>
-	<div id="search">
-		<form id="search_form">
-		<input type="search" id="searchBox" placeholder="Search for a song" />
-		</form>
-	</div>
+    </div>
 </body>
 </html>

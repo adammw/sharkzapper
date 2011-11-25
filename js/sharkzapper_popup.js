@@ -608,7 +608,8 @@ var sharkzapper = new (function SharkZapperPopup(debug){
         },
         msec2time: function msec2time(msec) {
             // return in m:ss
-            return Math.floor(msec / 1000 / 60) + ":" + sharkzapper.helpers.lpad((Math.floor(msec / 1000) % 60).toString(), "0", 2);
+            var sec = Math.round(msec / 1000);
+            return Math.floor(sec / 60) + ":" + sharkzapper.helpers.lpad((sec % 60).toString(), "0", 2);
         },
         lpad: function lpad(str, padString, length) {
             while (str.length < length)

@@ -402,7 +402,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         if (status.playbackStatus.activeSong.hasOwnProperty('index')) {
                             $('#queue_current_position').text(status.playbackStatus.activeSong.index+1);
                             if (!sharkzapper.settings.hasOwnProperty('showQueuePosition') || sharkzapper.settings.showQueuePosition) {
-                                $('#queuePosition').animate({width:'show'});
+                                $('#queuePosition').show();
                             }
                         }
                         
@@ -535,9 +535,9 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 }
                 if (newSettings.hasOwnProperty('showQueuePosition')) {
                     if (newSettings.showQueuePosition && $('#queuePosition').text().trim() != "/") {
-                        $('#queuePosition').animate({width:'show'});
+                        $('#queuePosition').show();
                     } else {
-                        $('#queuePosition').animate({width:'hide'});
+                        $('#queuePosition').hide();
                     }
                 }
                 if (newSettings.hasOwnProperty('showMuteButton')) {

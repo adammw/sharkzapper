@@ -230,7 +230,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 				}
             },
             playPauseClick: function handle_playPauseClick(e) {
-                if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.status == 7) { //PLAY_STATUS_COMPLETED
+                if (sharkzapper.cache.playbackStatus && sharkzapper.cache.playbackStatus.status == 7 || sharkzapper.cache.playbackStatus.status == 0) { //PLAY_STATUS_COMPLETED or PLAY_STATUS_NONE
                     sharkzapper.message.send({"command": "playSong"});
                 } else {
                     sharkzapper.message.send({"command": "togglePlayPause"});

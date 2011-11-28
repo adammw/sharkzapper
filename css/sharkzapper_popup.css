@@ -141,6 +141,9 @@ button span {
     -webkit-transition: left ease 200ms;
     -webkit-transition-delay: 1000ms;
 }
+#pin.selected { 
+    background-image: url(../img/pin_2.png);
+}
 #header:hover #pin {
     left: 0;
     -webkit-transition-delay: 0ms;

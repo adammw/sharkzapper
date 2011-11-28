@@ -94,6 +94,9 @@ body.notification #player_volume {
 body.notification #volumeControl {
     right: 8px;
 }
+body.notification #pin {
+    display: none;
+}
 
 /* button styles */
 button {
@@ -123,6 +126,24 @@ button span {
     width: 40px;
     height: 40px;
     padding: 0;
+}
+
+/* pin button style */
+#pin {
+    position: absolute;
+    top: 0;
+    left: -20px;
+    background: rgba(0,0,0,0.8) url(../img/pin.png) no-repeat center center; 
+    border-bottom-right-radius: 8px;
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+    -webkit-transition: left ease 200ms;
+    -webkit-transition-delay: 1000ms;
+}
+#header:hover #pin {
+    left: 0;
+    -webkit-transition-delay: 0ms;
 }
 
 /* navigation links */

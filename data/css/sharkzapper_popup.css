@@ -38,6 +38,7 @@ body {
     min-width: 320px;
     min-height: 155px;
     -webkit-user-select: none;
+    -moz-user-select: none;
 }
 .full_width {
     width: 320px;
@@ -49,22 +50,29 @@ body {
 /* box styles */
 .vbox,.hbox,.centerbox {
     display: -webkit-box;
+    display: -moz-box;
 }
 .vbox {
     -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
 }
 .hbox { 
     -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
 }
 .flex {
     -webkit-box-flex: 1;
+    -moz-box-flex: 1;
 }
 .centerbox {
     -webkit-box-pack: center;
     -webkit-box-align: center;
+    -moz-box-pack: center;
+    -moz-box-align: center;
 }
 .packend {
     -webkit-box-pack: end;
+    -moz-box-pack: end;
 }
 
 /* (pinned) notification overrides */
@@ -140,6 +148,8 @@ button span {
     cursor: pointer;
     -webkit-transition: left ease 200ms;
     -webkit-transition-delay: 1000ms;
+    -moz-transition: left ease 200ms;
+    -moz-transition-delay: 1000ms;
 }
 #pin.selected { 
     background-image: url(../img/pin_2.png);
@@ -147,6 +157,7 @@ button span {
 #header:hover #pin {
     left: 0;
     -webkit-transition-delay: 0ms;
+    -moz-transition-delay: 0ms;
 }
 
 /* navigation links */
@@ -216,6 +227,7 @@ button span {
 }
 #scrollContainer {
     padding: 8px;
+    /* TODO: Mozilla equivilant */
     -webkit-mask-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,1) 8px, rgba(0,0,0,1) 222px, rgba(0,0,0,0));
 }
 
@@ -226,6 +238,7 @@ button span {
     text-shadow: 0px 1px 0px #333;
     padding: 4px;
     background: -webkit-linear-gradient(top, hsla(0,0%,13%,0.8), hsla(0,0%,7%,0.8));
+    background: -moz-linear-gradient(top, hsla(0,0%,13%,0.8), hsla(0,0%,7%,0.8));
     border-top: hsla(0,0%,18%,0.8) 1px solid;
     border-left: hsla(0,0%,18%,0.8) 1px solid;
     box-shadow: -1px -1px 1px #000;

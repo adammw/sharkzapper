@@ -503,7 +503,7 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 		 */
 		inject: function inject(tabId) {
 			for (i in sharkzapper.tabs.injectScripts) {
-				chrome.tabs.executeScript(tabId, {file: sharkzapper.tabs.injectScripts[i]});
+				chrome.tabs.executeScript(tabId, {file: 'data/' + sharkzapper.tabs.injectScripts[i]});
 			}
 			if (debug) console.log('Injected scripts into existing tab #' + tabId);
 		},
@@ -576,7 +576,7 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 		pinnedPopupOpen: false,
 		pin: function() {
 			if (sharkzapper.popup.pinnedNotification || !window.webkitNotifications) return;
-			sharkzapper.popup.pinnedNotification = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('html/sharkzapper_popup.html#notification'));
+			sharkzapper.popup.pinnedNotification = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('data/html/sharkzapper_popup.html#notification'));
 			sharkzapper.popup.pinnedNotification.ondisplay = function(){
 				sharkzapper.popup.pinnedPopupOpen = true;
 				sharkzapper.message.send({command: "statusUpdate", pinnedPopupOpen: sharkzapper.popup.pinnedPopupOpen, delta: true, cached: false}, 'popup');
@@ -602,7 +602,7 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 				for (i in sharkzapper.notifications.songNotifications) {
 					sharkzapper.notifications.songNotifications.shift().cancel();
 				}
-				notification = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('html/sharkzapper_songnotification.html#' + JSON.stringify(song)));
+				notification = window.webkitNotifications.createHTMLNotification(chrome.extension.getURL('data/html/sharkzapper_songnotification.html#' + JSON.stringify(song)));
 				//notification = window.webkitNotifications.createNotification((song.CoverArtFilename && song.artPath) ? song.artPath + 'm' + song.CoverArtFilename : 'http://static.a.gs-cdn.net/webincludes/images/default/album_100.png', song.SongName, song.ArtistName + "\n" + song.AlbumName); 
 				notification.ondisplay = function(notification) { return function() { setTimeout(function(){ 
 					if (sharkzapper.notifications.songNotifications.indexOf(notification) === -1) return notification.cancel();
@@ -619,7 +619,7 @@ var sharkzapper = new (function SharkZapperBackground(debug){
 	sharkzapper.resources = {
 		fetch: function fetch(url, callback) {
 			var xhr = new XMLHttpRequest();
-			xhr.open("GET",chrome.extension.getURL(url));
+			xhr.open("GET",chrome.extension.getURL('data/'+url));
 			xhr.onreadystatechange=function() {
 				if (this.readyState == 4) {
 					callback(xhr.responseText, url);

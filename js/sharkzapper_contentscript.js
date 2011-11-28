@@ -162,8 +162,12 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 		window.postMessage(JSON.stringify(data), location.origin);
 	};
 	SharkZapperMessages.prototype.sendRequest = function(data) {
-		if(debug) console.log("sharkzapper:",">"+this.port.name+">",data.command, data);
-		this.port.postMessage(data);
+        if(debug) console.log("sharkzapper:",">"+this.port.name+">",data.command, data);
+        try {
+            this.port.postMessage(data);
+        } catch (e) {
+            console.warn("sharkzapper:",'attempted to send to disconnected port, this data will be lost:', data.command, data);
+        }
 	};
 	SharkZapperMessages.prototype.cleanUp = function() {
 		this.port.onMessage.removeListener(this.callbacks[this.handlePortMessage]);
@@ -196,10 +200,10 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 	// Check for old injections and init
 	(function check_and_init() {
 		var inject = document.getElementById('sharkzapperInject');
-		// Inject script if newer or in debug mode
-		if (inject && (debug || inject.className != 'version_'+sharkzapper.version)) {
+        // Clean up old injection regardless of newer or debug mode (required as otherwise will be using a disconnected port)
+		if (inject) {
 			if (debug) console.log('sharkzapper already injected ('+inject.className+'), trying to remove and replace with us! (using postMessage method)');
-			console.warn('posting cleanup');
+			if (debug) console.warn("sharkzapper: posting cleanup");
 			window.postMessage(JSON.stringify({"command":"cleanUp"}), location.origin);
 			window.addEventListener("message", function listen_for_cleanup_done(e) {
 				if (e.origin != location.origin) return;

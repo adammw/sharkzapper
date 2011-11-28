@@ -60,8 +60,39 @@ body {
     -webkit-box-flex: 1;
 }
 .centerbox {
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
+    -webkit-box-pack: center;
+    -webkit-box-align: center;
+}
+.packend {
+    -webkit-box-pack: end;
+}
+
+/* (pinned) notification overrides */
+body.notification #header {
+    /* trim 4px off top and bottom */
+    margin-top: -4px;
+    height: 34px;
+    overflow: hidden;
+    background-position: 0 -4px;
+}
+body.notification #header_mainNavigation a:nth-child(3) {
+    display: none;
+}
+body.notification #header #grooveshark {
+    height: 33px;
+}
+body.notification .full_width { 
+    /* notification has max 300px width */
+    width: 300px;
+}
+body.notification #player_times {
+    max-width: 50px;
+}
+body.notification #player_volume {
+    width: 30px;
+}
+body.notification #volumeControl {
+    right: 8px;
 }
 
 /* button styles */

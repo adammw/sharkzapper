@@ -13,6 +13,9 @@
  */
 var sharkzapper = (function SharkZapperSongNotification(debug) {
 	var sharkzapper = this;
+    sharkzapper.urls = {
+        albumartroot: 'http://beta.grooveshark.com/static/amazonart/'
+    };
 	sharkzapper.ui = {
 		timeouts: {
             scrollables: [],
@@ -20,11 +23,12 @@ var sharkzapper = (function SharkZapperSongNotification(debug) {
         },
 		ready: function() {
 			var songData = JSON.parse(location.hash.substring(1));
+            if(debug) console.log(songData);
 			$("#songName")[0].innerText = songData.SongName;
 			$("#artistName")[0].innerText = songData.ArtistName;
 			$("#albumName")[0].innerText = songData.AlbumName;
-			if (songData.artPath && songData.CoverArtFilename) {
-				$('#albumArt')[0].src = songData.artPath + 's' + songData.CoverArtFilename;
+			if (songData.CoverArtFilename) {
+				$('#albumArt')[0].src = sharkzapper.urls.albumartroot + 's' + songData.CoverArtFilename;
 			}
 			$(".buttons button").bind('click',sharkzapper.ui.buttonClick);
 			sharkzapper.ui.updateScrollables();
@@ -55,13 +59,13 @@ var sharkzapper = (function SharkZapperSongNotification(debug) {
 				$(el).clearQueue().stop().css('marginLeft',0).children().not(':first-child').remove();
 				var width = $(el).children().width();
 				var clone = $(el).children().eq(0).clone();
-				console.log($(el).width(),width);
+				if(debug) console.log($(el).width(),width);
 				if (($(el).width()) >= width) return; //Ignore text that fits fine
-				console.log('will scroll',el);
+				if(debug) console.log('will scroll',el);
 				$(el).append('<span class="sep"> - </span>');
 				$(el).append(clone);
 				width += $(el).children().eq(1).width();
-				console.log('elwidth',$(el).width(),'width',width);
+				if(debug) console.log('elwidth',$(el).width(),'width',width);
 				(function animate() {
 					$(el).animate({marginLeft: -width}, width*scrollRate, 'linear', function() {
 						$(this).delay(1).css('marginLeft', 0);

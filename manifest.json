@@ -4,18 +4,18 @@
 
 	"description": "Control Grooveshark HTML5 Player and see what's playing",
 	"icons": {
-		"16": "img/icon_16.png",
-		"22": "img/icon_22.png",
-		"32": "img/icon_32.png",
-		"48": "img/icon_48.png",
-		"64": "img/icon_64.png",
-		"96": "img/icon_96.png",
-		"128": "img/icon_128.png"
+		"16": "data/img/icon_16.png",
+		"22": "data/img/icon_22.png",
+		"32": "data/img/icon_32.png",
+		"48": "data/img/icon_48.png",
+		"64": "data/img/icon_64.png",
+		"96": "data/img/icon_96.png",
+		"128": "data/img/icon_128.png"
 	},
     
 	"browser_action": {
-		"default_icon": "img/icon_19.png",
-		"default_popup": "html/sharkzapper_popup.html"
+		"default_icon": "data/img/icon_19.png",
+		"default_popup": "data/html/sharkzapper_popup.html"
 	},
 	"permissions": [
 		"tabs",
@@ -23,12 +23,12 @@
 		"contextMenus",
 		"http://*.grooveshark.com/"
 	],
-	"background_page": "html/sharkzapper_background.html",
-	"options_page": "html/sharkzapper_options.html",
+	"background_page": "data/html/sharkzapper_background.html",
+	"options_page": "data/html/sharkzapper_options.html",
 	"content_scripts": [
 		{
 			"matches": ["*://preview.grooveshark.com/*", "*://grooveshark.com/*"],
-			"js": ["js/jquery.min.js", "js/sharkzapper_contentscript.js"]
+			"js": ["data/js/jquery.min.js", "data/js/sharkzapper_contentscript.js"]
 		}
 	]
 }

@@ -12,6 +12,11 @@
  * "Grooveshark" and Grooveshark Logos are trademarks of Escape Media Group.
  */
 var sharkzapper = new (function SharkZappperContentScript(debug) {
+    const isChrome = ('object' === typeof chrome);
+    const isFirefox = !isChrome;
+    const isSafari = false;
+    if (debug) console.log('isChrome',isChrome,'isFirefox',isFirefox,'isSafari',isSafari);
+
 	var sharkzapper = this;
 	sharkzapper.version = '1.4.2';
 	
@@ -51,8 +56,12 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 	 * @constructor
 	 */
 	function SharkZapperMessages() {
-		this.port = chrome.extension.connect({name: "contentScript"});
-		this.port.onMessage.addListener(this.callback(this.handlePortMessage));
+        if (isChrome) {
+		    this.port = chrome.extension.connect({name: "contentScript"});
+		    this.port.onMessage.addListener(this.callback(this.handlePortMessage));
+        } else if (isFirefox) {
+            self.port.on('message', this.callback(this.handlePortMessage));
+        }
 		window.addEventListener("message", this.callback(this.handleWindowMessage));
 	};
 	SharkZapperMessages.prototype.handlePortMessage = function recieve_message(data) {
@@ -70,14 +79,16 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
 					script.id = 'sharkzapperTabWarning';
 					script.innerHTML = '$.publish("gs.notification", {type: "error", displayDuration: 120000, message: "Grooveshark is already open in <a href=\\"#\\" onclick=\\"window.postMessage(JSON.stringify({\'command\':\'firstTabNavigate\'}), location.origin);return false;\\">another tab</a>, please close this tab if you wish to use SharkZapper"});';
 					document.body.appendChild(script);
-					window.addEventListener("message", function listen_for_firsttabnavigate(e) {
-						if (e.origin != location.origin) return;
-						var request = JSON.parse(e.data)
-						if (request.command != 'firstTabNavigate') return;
-						if (debug) console.log("got firstTabNavigate message", request);
-						chrome.extension.sendRequest(request);
-						window.removeEventListener("message",listen_for_firsttabnavigate,false);
-					});
+                    if (isChrome) {
+					    window.addEventListener("message", function listen_for_firsttabnavigate(e) {
+						    if (e.origin != location.origin) return;
+						    var request = JSON.parse(e.data)
+						    if (request.command != 'firstTabNavigate') return;
+						    if (debug) console.log("got firstTabNavigate message", request);
+						    chrome.extension.sendRequest(request);
+						    window.removeEventListener("message",listen_for_firsttabnavigate,false);
+					    });
+                    }
 				}
 				break;
 			case 'contentScriptUpdate':

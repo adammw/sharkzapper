@@ -620,11 +620,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
         decodeHTMLEntitiesInStatus: function(playbackStatus) {
             if (playbackStatus.activeSong) {
                 if (playbackStatus.activeSong.SongName)
-                    playbackStatus.activeSong.SongName = playbackStatus.activeSong.SongName.replace(/&amp\;/g,"&");
+                    playbackStatus.activeSong.SongName = playbackStatus.activeSong.SongName.replace(/&amp\;/g,"&").replace(/&quot\;/g,"\"");
                 if (playbackStatus.activeSong.ArtistName)
-                    playbackStatus.activeSong.ArtistName = playbackStatus.activeSong.ArtistName.replace(/&amp\;/g,"&");
+                    playbackStatus.activeSong.ArtistName = playbackStatus.activeSong.ArtistName.replace(/&amp\;/g,"&").replace(/&quot\;/g,"\"");
                 if (playbackStatus.activeSong.AlbumName)
-                    playbackStatus.activeSong.AlbumName = playbackStatus.activeSong.AlbumName.replace(/&amp\;/g,"&");
+                    playbackStatus.activeSong.AlbumName = playbackStatus.activeSong.AlbumName.replace(/&amp\;/g,"&").replace(/&quot\;/g,"\"");
             }
         }
     };

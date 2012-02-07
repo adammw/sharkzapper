@@ -2,7 +2,7 @@
  * sharkzapper_popup.js
  * This is the popup script for sharkZapper which handles the UI functions of the popup
  *
- * sharkZapper is Copyright (C) 2010-2011 Adam Malcontenti-Wilson <adman.com@gmail.com>
+ * sharkZapper is Copyright (C) 2010-2012 Adam Malcontenti-Wilson <adman.com@gmail.com>
  * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
  * You may not create derivative versions of the software without written permission of the author.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
@@ -169,7 +169,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
             searchSubmit: function handle_searchSubmit(e) {
                 e.preventDefault();
                 if (!$('#searchBox').val().length) return;
-                sharkzapper.message.send({"command": "openGSTab", "url": "#/search?q=" + escape($('#searchBox').val())});
+                sharkzapper.message.send({"command": "openGSTab", "url": "#/search?q=" + encodeURIComponent($('#searchBox').val())});
             },
             searchBlur: function handle_searchBlur(e) {
                 if (!$(this).val()) {

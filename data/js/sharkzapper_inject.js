@@ -29,6 +29,8 @@ var sharkzapper = new (function SharkZapperPage(debug){
         init: function init_overrides() {
             // Override propertychange / queuechange callbacks to provide events
             sharkzapper.helpers.execWhenReady(function playerOverride() {
+                sharkzapper.overrides.originals["GS.player.voteSong"] = GS.player.voteSong;
+                GS.player.voteSong = sharkzapper.overrides.listeners.voteSong;
                 sharkzapper.cache.playbackProperties = GS.player.player.setPropertyChangeCallback("sharkzapper.overrides.propertyChange");
                 GS.player.player.setQueueChangeCallback("sharkzapper.overrides.queueChange");
             },'playerOverride','onPlayerReady');
@@ -70,6 +72,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
         undo: function undo_overrides() {
             GS.player.player.setPropertyChangeCallback("GS.Controllers.PlayerController.instance().propertyChange");  
             GS.player.player.setQueueChangeCallback("GS.Controllers.PlayerController.instance().queueChange");
+            GS.player.voteSong = sharkzapper.overrides.originals["GS.player.voteSong"];
             if (debug) console.log('undid sharkzapper overrides');
         },
         listeners: {
@@ -81,8 +84,14 @@ var sharkzapper = new (function SharkZapperPage(debug){
             queueChange: function sharkzapper_handle_queueChange(queue) {
                 $.publish("gs.player.queuechange",queue);
                 GS.Controllers.PlayerController.instance().queueChange.call(null, queue);
+            },
+            /* Unfortunately GS provides gs.player.voted but it's useless as it doesn't say which song! */
+            voteSong: function sharkzapper_handle_voteSong() {
+                sharkzapper.overrides.originals["GS.player.voteSong"].apply(this, arguments);
+                $.publish("gs.player.votesong",arguments);
             }
-        }
+        },
+        originals: {}
     };
     sharkzapper.listeners = {
         subscriptions: {},
@@ -101,6 +110,8 @@ var sharkzapper = new (function SharkZapperPage(debug){
             // Custom Events - see overrides
             sharkzapper.listeners.subscriptions["gs.player.propchange"] = $.subscribe("gs.player.propchange", sharkzapper.listeners.propchange);
             sharkzapper.listeners.subscriptions["gs.player.queuechange"] = $.subscribe("gs.player.queuechange", sharkzapper.listeners.queuechange);
+            sharkzapper.listeners.subscriptions["gs.player.votesong"] = $.subscribe("gs.player.votesong", sharkzapper.listeners.votesong);
+
             
             // Fake the gs.app.ready event (needed when injected after it has already fired)
             $(document).ready(function() {
@@ -125,6 +136,7 @@ var sharkzapper = new (function SharkZapperPage(debug){
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.playstatus"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.propchange"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.queuechange"]);
+            $.unsubscribe(sharkzapper.listeners.subscriptions["gs.player.votesong"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.library.songsAdded"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.library.remove"]);
             $.unsubscribe(sharkzapper.listeners.subscriptions["gs.auth.favorites.songs.add"]);
@@ -257,6 +269,25 @@ var sharkzapper = new (function SharkZapperPage(debug){
                 }
                 sharkzapper.message.send(message);
             } 
+        },
+        votesong: function handle_votesong(queuePos, vote) {
+            var songId = GS.player.getSongDetails(GS.player.queue.queueID, [queuePos])[0].SongID;
+            if (songId == GS.player.activeSong.SongID) {
+                if (debug) console.log('currentSongVoteChanged', vote);
+
+                // Manually update cache
+                if (!sharkzapper.cache.playbackStatus) {
+                    sharkzapper.cache.playbackStatus = GS.player.getPlaybackStatus();
+                    sharkzapper.helpers.decodeHTMLEntitiesInStatus(sharkzapper.cache.playbackStatus);
+                }
+                if (sharkzapper.cache.playbackStatus.activeSong) {
+                    sharkzapper.cache.playbackStatus.activeSong.autoplayVote = vote;
+                }
+
+                // Prepare and send update
+                sharkzapper.message.send({"command": "statusUpdate", "playbackStatus": {"activeSong": {"autoplayVote": vote}}, "cached": false, "delta": true});
+            }
+            if (debug) console.log('votesong', songId, vote);  
         },
         sharkzapperPage: function handle_sharkzapperPage(pageType) {
             this.pageType = pageType || 'settings';

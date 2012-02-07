@@ -116,10 +116,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_shuffle').bind('click', sharkzapper.ui.listeners.shuffleClick);
 	            $('#player_loop').bind('click', sharkzapper.ui.listeners.loopClick);
 	            $('#player_crossfade').bind('click', sharkzapper.ui.listeners.crossfadeClick);
-	            $('#addToLibraryBtn').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
-	            $('#addToFavoritesBtn').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
-	            $('#radioSmileBtn').bind('click', sharkzapper.ui.listeners.radioSmileClick);
-	            $('#radioFrownBtn').bind('click', sharkzapper.ui.listeners.radioFrownClick);
+	            $('#song_library').bind('click', sharkzapper.ui.listeners.addToLibraryClick);
+	            $('#song_favorite').bind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+	            $('#song_smile').bind('click', sharkzapper.ui.listeners.radioSmileClick);
+	            $('#song_frown').bind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#player_options').bind('click',sharkzapper.ui.listeners.settingsClick);
 	            $('#pin').bind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songDetails').on('click','.songName, .artistName, .albumName',sharkzapper.ui.listeners.songInfoClick);
@@ -146,10 +146,10 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 	            $('#player_shuffle').unbind('click', sharkzapper.ui.listeners.shuffleClick);
 	            $('#player_loop').unbind('click', sharkzapper.ui.listeners.loopClick);
 	            $('#player_crossfade').unbind('click', sharkzapper.ui.listeners.crossfadeClick);
-	            $('#addToLibraryBtn').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
-                $('#addToFavoritesBtn').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
-	            $('#radioSmileBtn').unbind('click', sharkzapper.ui.listeners.radioSmileClick);
-                $('#radioFrownBtn').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
+	            $('#song_library').unbind('click', sharkzapper.ui.listeners.addToLibraryClick);
+                $('#song_favorite').unbind('click', sharkzapper.ui.listeners.addToFavoritesClick);
+	            $('#song_smile').unbind('click', sharkzapper.ui.listeners.radioSmileClick);
+                $('#song_frown').unbind('click', sharkzapper.ui.listeners.radioFrownClick);
 	            $('#player_options').unbind('click',sharkzapper.ui.listeners.settingsClick);
                 $('#pin').unbind('click',sharkzapper.ui.listeners.pinClick);
 	            $('#songDetails').off('click','.songName, .artistName, .albumName',sharkzapper.ui.listeners.songInfoClick);
@@ -185,24 +185,24 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                 $(this).siblings("input").val("").focus();
             },
             addToFavoritesClick: function handle_addToFavoritesClick(e) {
-                if ($('#addToFavoritesBtn').hasClass('selected')) {
+                if ($('#song_favorite').hasClass('selected')) {
 			        sharkzapper.message.send({"command": "removeFromSongFavorites"});
 		        } else {
 			        sharkzapper.message.send({"command": "addToSongFavorites"});
 		        }
             },
             addToLibraryClick: function handle_addToLibraryClick(e) {
-                if ($('#addToLibraryBtn').hasClass('selected')) {
+                if ($('#song_library').hasClass('selected')) {
 			        sharkzapper.message.send({"command": "removeFromLibrary"});
 		        } else {
 			        sharkzapper.message.send({"command": "addToLibrary"});
 		        }
             },
             radioSmileClick: function handle_radioSmileClick(e) {
-                sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioSmileBtn').hasClass('selected')) ? 0 : 1});
+                sharkzapper.message.send({"command": "voteSong", "vote": ($('#song_smile').hasClass('selected')) ? 0 : 1});
             },
             radioFrownClick: function handle_radioFrownClick(e) {
-                sharkzapper.message.send({"command": "voteSong", "vote": ($('#radioFrownBtn').hasClass('selected')) ? 0 : -1});
+                sharkzapper.message.send({"command": "voteSong", "vote": ($('#song_frown').hasClass('selected')) ? 0 : -1});
             },
             loopClick: function handle_loopClick(e) {
                 if ($('#player_loop').hasClass("active") && $('#player_loop').hasClass("one")) {
@@ -407,25 +407,25 @@ var sharkzapper = new (function SharkZapperPopup(debug){
                         }
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('fromLibrary')) {
-                            $('#addToLibraryBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.fromLibrary));
-                            if ($('#addToLibraryBtn').hasClass('selected')) {
-                                $('#addToLibraryBtn').attr('title', 'Remove from My Music');
+                            $('#song_library').toggleClass('selected',Boolean(status.playbackStatus.activeSong.fromLibrary));
+                            if ($('#song_library').hasClass('selected')) {
+                                $('#song_library').attr('title', 'Remove from My Music');
                             } else {
-                                $('#addToLibraryBtn').attr('title', 'Add to My Music');
+                                $('#song_library').attr('title', 'Add to My Music');
                             }
                         }
                         if (status.playbackStatus.activeSong.hasOwnProperty('isFavorite')) {
-                            $('#addToFavoritesBtn').toggleClass('selected',Boolean(status.playbackStatus.activeSong.isFavorite));
-                            if ($('#addToFavoritesBtn').hasClass('selected')) {
-                                $('#addToFavoritesBtn').attr('title', 'Remove from Favorites');
+                            $('#song_favorite').toggleClass('selected',Boolean(status.playbackStatus.activeSong.isFavorite));
+                            if ($('#song_favorite').hasClass('selected')) {
+                                $('#song_favorite').attr('title', 'Remove from Favorites');
                             } else {
-                                $('#addToFavoritesBtn').attr('title', 'Add to Favorites');
+                                $('#song_favorite').attr('title', 'Add to Favorites');
                             }
                         }
 						
 						if (status.playbackStatus.activeSong.hasOwnProperty('autoplayVote')) {
-							$('#radioSmileBtn').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == 1);
-							$('#radioFrownBtn').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == -1);
+							$('#song_smile').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == 1);
+							$('#song_frown').toggleClass('selected', status.playbackStatus.activeSong.autoplayVote == -1);
 						}
                         
                         if (status.playbackStatus.activeSong.hasOwnProperty('urls')) {
@@ -497,7 +497,7 @@ var sharkzapper = new (function SharkZapperPopup(debug){
 					    $('#player_loop').toggleClass('one', status.queue.repeatMode == 2); //REPEAT_ONE
                     }
                     if (status.queue.hasOwnProperty('autoplayEnabled')) {
-                        $('#playerDetails_nowPlaying').toggleClass('radioOn', status.queue.autoplayEnabled);
+                        $('body').toggleClass('radio', status.queue.autoplayEnabled);
                     }
                     if (status.queue.hasOwnProperty('previousSong')) {
                         if (status.queue.previousSong) {

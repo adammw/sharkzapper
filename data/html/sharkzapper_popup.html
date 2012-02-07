@@ -48,7 +48,12 @@
 		            <div class="scrollable"><a class="albumName"></a></div>
                 </div>
                 <div id="queueDetail" class="hbox">
-                    <div class="flex"></div>
+                    <div id="queueButtons" class="hbox flex">
+                        <button id="song_library" class="maskIcon library" title="Add to My Music"></button>
+                        <button id="song_favorite" class="maskIcon favorite" title="Add to Favorites"></button>
+                        <button id="song_smile" class="maskIcon smile"></button>
+                        <button id="song_frown" class="maskIcon frown"></button>
+                    </div>
                     <div id="queuePosition" style="display: none">
                         <span id="queue_current_position"></span> /
                         <span id="queue_total"></span>

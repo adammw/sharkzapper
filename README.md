@@ -1,4 +1,4 @@
-![sharkZapper Logo](/data/img/icon_128.png)
+![sharkZapper Logo](https://raw.github.com/adammw/sharkzapper/master/data/img/icon_128.png)
 sharkZapper 
 ===========
 

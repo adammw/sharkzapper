@@ -2,7 +2,7 @@
  * sharkzapper_inject.js
  * This is the inject script for sharkZapper which handles all communication between Grooveshark's JS API and the content script
  *
- * sharkZapper is Copyright (C) 2010-2011 Adam Malcontenti-Wilson <adman.com@gmail.com>
+ * sharkZapper is Copyright (C) 2010-2012 Adam Malcontenti-Wilson <adman.com@gmail.com>
  * You are hereby granted a licence to use the software as-is, and view the source code for educational purposes.
  * You may not create derivative versions of the software without written permission of the author.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
@@ -521,6 +521,11 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     var songId = data.songId || sharkzapper.helpers.getCurrentSongID();
                     if (!songId) return;
                     GS.user.removeFromSongFavorites(songId);
+                    break;
+                case "performSearch":
+                    if (!sharkzapper.gs_ready || !data.query) return;
+                    var searchType = data.type || "";
+                    GS.router.performSearch(searchType, data.query);
                     break;
             }
         }

@@ -518,6 +518,9 @@ var sharkzapper = new (function SharkZapperPage(debug){
                     if (!sharkzapper.gs_ready) return;
                     
                     GS.player.setShuffle(data.shuffle);
+                    
+                    // Fix for broken GS UI
+                    $("#player_shuffle").toggleClass("active",data.shuffle)
                     break;
                 case "setRepeat":
                     if (!sharkzapper.gs_ready) return;

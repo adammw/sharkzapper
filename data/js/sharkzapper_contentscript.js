@@ -18,7 +18,7 @@ var sharkzapper = new (function SharkZappperContentScript(debug) {
     if (debug) console.log('isChrome',isChrome,'isFirefox',isFirefox,'isSafari',isSafari);
 
 	var sharkzapper = this;
-	sharkzapper.version = '1.4.2';
+	sharkzapper.version = '1.4.3';
 	
 	sharkzapper.listeners = {
 		bind: function bind_listeners() {
